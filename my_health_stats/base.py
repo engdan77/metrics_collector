@@ -5,7 +5,7 @@ from loguru import logger
 from datetime import date
 import json
 from appdirs import user_data_dir
-from deepmerge import always_merger as merge
+from deepmerge import always_merger
 
 Number = Union[int, float]
 
@@ -34,7 +34,7 @@ class BaseService(ABC):
         f = Path(filename)
         if f.exists():
             current_data = json.loads(f.read_text())
-            data = merge(current_data, data)
+            data = always_merger.merge(current_data, data)
         with open(filename, "w") as f:
             json.dump(data, f, indent=2)
 
