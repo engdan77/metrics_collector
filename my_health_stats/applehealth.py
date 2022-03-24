@@ -10,6 +10,8 @@ from my_health_stats.base import DaysActivities, BaseService
 
 class AppleHealth(BaseService):
     def __init__(self, zip_file: str):
+        self.records = None
+        self.xml = None
         self.zip_file = zip_file
         self.activity_prefix = "HKQuantityTypeIdentifier"
         self.activities = [
@@ -21,11 +23,13 @@ class AppleHealth(BaseService):
             "HKQuantityTypeIdentifierDistanceWalkingRunning",
             "HKQuantityTypeIdentifierStepCount",
         ]
+        self.parsed_complete = False
 
     def parse_records(self):
         self.xml = self._extract_xml(self.zip_file)
         logger.debug(f"found xml {int(len(self.xml) / 1000)} KB")
         self.records = self._get_health_data_from_xml(self.xml)
+        self.parsed_complete = True
 
     def _extract_xml(self, input_zip):
         with ZipFile(input_zip) as myzip:
@@ -53,7 +57,8 @@ class AppleHealth(BaseService):
         return result
 
     def get_data_from_service(self, date_) -> DaysActivities:
-        self.parse_records()
+        if not self.parsed_complete:
+            self.parse_records()
         input_records = self.records
         result = defaultdict(lambda: defaultdict(dict))
         for r in input_records.records:
