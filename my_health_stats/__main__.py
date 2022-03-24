@@ -15,7 +15,7 @@ def main():
 
     for i, day in enumerate(get_past_days(number_of_days)):
         for f in (ah, g):
-            logger.debug(f'Processing {d} / {number_of_days} ')
+            logger.debug(f'Processing {i}/{number_of_days} ')
             result = f.get_data(day)
             print(result)
 
