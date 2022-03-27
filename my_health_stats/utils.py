@@ -2,8 +2,8 @@ from datetime import datetime, timedelta
 from typing import Generator
 
 
-def get_past_days(number_days: int = 1) -> Generator:
+def get_past_days(number_days: int = 1, offset=0) -> Generator:
     today = datetime.now()
     for d in range(1, number_days):
-        x = today - timedelta(days=d)
+        x = today - timedelta(days=d + offset)
         yield x.strftime('%Y-%m-%d')
