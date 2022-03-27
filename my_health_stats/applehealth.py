@@ -1,4 +1,3 @@
-import json
 from collections import defaultdict
 from tempfile import NamedTemporaryFile
 from typing import Any
@@ -9,6 +8,7 @@ from my_health_stats.base import DaysActivities, BaseService
 
 
 class AppleHealth(BaseService):
+
     def __init__(self, zip_file: str):
         self.records = None
         self.xml = None
@@ -62,10 +62,10 @@ class AppleHealth(BaseService):
         input_records = self.records
         result = defaultdict(lambda: defaultdict(dict))
         for r in input_records.records:
+            d = r.start.strftime("%Y-%m-%d")
             if r.name in self.activities:
                 if r.start == date_:
                     continue
-                d = r.start.strftime("%Y-%m-%d")
                 activity_name = r.name.replace(self.activity_prefix, "").lower()
                 result[d][activity_name]["unit"] = r.unit
                 values = result[d][activity_name].get("value", [])
