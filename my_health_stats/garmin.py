@@ -13,7 +13,7 @@ class MyGarmin(BaseService):
         self.api = Garmin(username, password)
         self.logged_in = False
 
-    def login(self, retries=5, timer=2):
+    def login(self, retries=5, timer=10):
         for _ in range(1, retries + 1):
             try:
                 self.logged_in = self.api.login()
@@ -37,6 +37,7 @@ class MyGarmin(BaseService):
                     'averageHR': 'bpm',
                     'steps': 'count'
                     }
+        result[d] = {}
         for i, a in enumerate(activities, start=1):
             logger.debug(f'Activity {i}')
             for key, unit in key_unit.items():
