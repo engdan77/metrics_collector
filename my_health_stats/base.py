@@ -99,11 +99,10 @@ class BaseService(ABC):
                             row_data.update({'date': date_,
                                              f'{field_name}_{processor_name}': processed_data})
                     else:
-                        row_data.update({date: date_, field_name: value[0]})
+                        row_data.update({'date': date_, field_name: value[0]})
                 else:
-                    row_data.update({date: date_, field_name: value})
+                    row_data.update({'date': date_, field_name: value})
             df = pd.concat([df, pd.DataFrame.from_records([row_data])])
         df['date'] = pd.to_datetime(df["date"]).dt.date
-        df.set_index('date')
-        df.reset_index()
+        df = df.set_index(df['date'])
         return df
