@@ -30,7 +30,7 @@ class MyGarmin(BaseService):
         result = defaultdict(lambda: defaultdict(dict))
         d = date_
         activities = self.api.get_activities_by_date(d, d, None)
-        key_unit = {'distance': 'Km',
+        key_unit = {'distance': 'meters',
                     'duration': 'seconds',
                     'calories': 'cal',
                     'maxHR': 'bpm',
