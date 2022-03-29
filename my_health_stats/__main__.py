@@ -1,3 +1,5 @@
+import pandas as pd
+
 from my_health_stats.applehealth import AppleHealth
 from my_health_stats.garmin import MyGarmin
 from my_health_stats.utils import get_past_days
@@ -18,13 +20,17 @@ def get_data(number_of_days=1800):
             result = f.get_data(day)
             print(result)
 
+
 def main():
-    ah = AppleHealth('./data/health_data_2022.zip')
+    ah = AppleHealth('./data/export.zip')
     g = MyGarmin(os.getenv('USERNAME'), os.getenv('PASSWORD'))
     df_ah = ah.to_df()
     df_g = g.to_df()
+    # df = pd.concat([df_ah, df_g])
+    df = df_ah
+    df.update(df_g)
+    df.sort_values(by=['date'], inplace=True)
     ...
-
 
 
 if __name__ == '__main__':
