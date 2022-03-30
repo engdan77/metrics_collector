@@ -42,6 +42,8 @@ class MyGarmin(BaseService):
             logger.debug(f'Activity {i}')
             for key, unit in key_unit.items():
                 activity_name = f"{a['activityType']['typeKey'].lower()}_{key}"
+                if activity_name not in result[d]:
+                    result[d][activity_name] = {}
                 result[d][activity_name]['unit'] = unit
                 values = result[d][activity_name].get("value", [])
                 values.append(a[key])
