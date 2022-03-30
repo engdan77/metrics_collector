@@ -40,10 +40,11 @@ class BaseService(ABC):
 
     def pop_existing_days(self, existing_data: DaysActivities, pop_data: DaysActivities) -> DaysActivities:
         """Remove days from pop_data if that day already exists in existing_data"""
+        output_pop_data = pop_data.copy()
         for day in pop_data.keys():
             if day in existing_data:
-                pop_data.pop(day)
-        return pop_data
+                output_pop_data.pop(day)
+        return output_pop_data
 
     def to_json(self, filename: str, data: DaysActivities) -> None:
         f = Path(filename)
