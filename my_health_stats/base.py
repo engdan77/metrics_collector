@@ -67,6 +67,7 @@ class BaseService(ABC):
 
     def get_data(self, date_: str) -> DaysActivities:
         cache_file = self.get_cache_file()
+        logger.debug(f'attempt get cache data from {cache_file}')
         if (j := self.from_json(cache_file, date_)) is not None:
             return j
         j = self.get_data_from_service(date_)
