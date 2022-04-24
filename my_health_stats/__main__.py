@@ -3,6 +3,7 @@ import pandas as pd
 from my_health_stats.applehealth import AppleHealth
 from my_health_stats.garmin import MyGarmin
 from my_health_stats.utils import get_past_days
+from my_health_stats.datatransformer import DataframeTransformer
 import os
 import logging
 
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_data(number_of_days=1800):
-    ah = AppleHealth('./data/export.zip')
+    ah = AppleHealth('../data/export.zip')
     g = MyGarmin(os.getenv('USERNAME'), os.getenv('PASSWORD'))
 
     for i, day in enumerate(get_past_days(number_of_days, offset=0)):
@@ -22,15 +23,15 @@ def get_data(number_of_days=1800):
 
 
 def main():
-    ah = AppleHealth('./data/export.zip')
+    ah = AppleHealth('../data/export.zip')
     g = MyGarmin(os.getenv('USERNAME'), os.getenv('PASSWORD'))
     _ = ah.get_data('2021-01-01')
+    _ = g.get_data('2021-01-01')
     df_ah = ah.to_df()
     df_g = g.to_df()
     df = pd.concat([df_ah, df_g])
-    # df = df_ah
-    # df.update(df_g)
-    # df.sort_values(by=['date'], inplace=True)
+
+    x = DataframeTransformer(df)
     ...
 
 
