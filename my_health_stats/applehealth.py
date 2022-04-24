@@ -2,8 +2,8 @@ from collections import defaultdict
 from tempfile import NamedTemporaryFile
 from typing import Any
 from zipfile import ZipFile
-from apple_health import HealthData
 from loguru import logger
+from apple_health import HealthData
 from my_health_stats.base import DaysActivities, BaseService
 
 
@@ -40,6 +40,7 @@ class AppleHealth(BaseService):
     def _get_health_data_from_xml(self, input_xml: bytes):
         with NamedTemporaryFile() as fp:
             fp.write(input_xml)
+            # TODO: fina HealthData class
             health_data = HealthData.read(fp.name)
         return health_data
 
