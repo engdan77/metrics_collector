@@ -3,7 +3,6 @@ from collections import defaultdict
 from garminconnect import Garmin, GarminConnectConnectionError
 from loguru import logger
 from my_health_stats.base import DaysActivities, BaseService
-from datetime import date, datetime
 import time
 
 
