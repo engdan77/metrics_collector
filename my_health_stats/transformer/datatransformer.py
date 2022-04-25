@@ -4,33 +4,36 @@ import pandas as pd
 import numpy as np
 from loguru import logger
 from collections.abc import Iterable
+from abc import ABC, abstractproperty, abstractmethod
+from dataclasses import dataclass
+from my_health_stats.platform.apple import AppleHealthPlatform
+from my_health_stats.platform.garmin import GarminPlatform
+from typing import Annotated, List, Set
 
 
 class TransformError(Exception):
     """Error related to transformation of data"""
 
 
-class DataframeTransformer:
-    def __init__(self, df: pd.DataFrame = None):
-        self.df = df
-        self.columns_required = ('walking_distance_meters',)
+class BaseTransformer(ABC):
+    input_df_columns: Annotated[Set, "list of columns"] = NotImplemented
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if cls.input_df_columns is NotImplemented:
+            raise NotImplementedError(
+                "Please implement the `input_df_columns` class variable"
+            )
 
     def __repr__(self):
-        return f'{self.__class__.__name__}({self.df!r})'
+        return f"{self.__class__.__name__}({self.df!r})"
 
     def __str__(self):
-        return f'{self.__class__.__name__} with size {self.df.shape}'
+        return f"{self.__class__.__name__} with size {self.df.shape}"
 
-    def process(self, from_: datetime.date, to_: datetime.date):
-        return (
-                self.index_as_dt().
-                aggregate_combined_dataframes().
-                add_missing_columns(self.columns_required).
-                filter_period(from_, to_).
-                add_col_avg_speed_running_trip().
-                add_apple_garmin_distances().
-                add_missing_values()
-                )
+    @abstractmethod
+    def process(self, from_: datetime.date, to_: datetime.date) -> pd.DataFrame:
+        """Shall process and return dataframe with data"""
 
     def index_as_dt(self):
         """Assure index being parsed as datetime and orders"""
@@ -51,15 +54,55 @@ class DataframeTransformer:
         columns = [columns] if isinstance(columns, str) else columns
         for c in columns:
             if c not in self.df.columns:
-                logger.debug(f'adding missing column {c} to df')
+                logger.debug(f"adding missing column {c} to df")
                 self.df[c] = default_value
         return self
 
     def filter_period(self, from_: datetime.date, to_: datetime.date):
         """Filter period between dates"""
-        f, t = datetime.date(2020, 1, 1), datetime.date(2023, 1, 1)
-        self.df = self.df.query('date > @f & date < @t')
+        f, t = from_, to_
+        self.df = self.df.query("date > @f & date < @t")
         return self
+
+    def add_missing_values(
+        self,
+        nan_value=0.0,
+        cols=(
+            "bloodpressurediastolic_mmHg",
+            "bloodpressuresystolic_mmHg",
+            "bodymass_kg",
+        ),
+    ):
+        """Filling missing values use linear backward"""
+        for _ in cols:
+            self.df[_].replace(nan_value, np.NaN, inplace=True)
+            self.df[_].interpolate(
+                method="linear", limit_direction="backward", inplace=True
+            )
+        return self
+
+    def resample_sum(self, resolution="W"):
+        """Resampling resolution"""
+        self.df = self.df.resample(resolution).sum()
+
+
+class GarminAppleTransformer(BaseTransformer):
+    input_df_columns = ("walking_distance_meters",)
+
+    def __init__(self, apple_df: AppleHealthPlatform, garmin_df: GarminPlatform):
+        self.df = pd.concat([apple_df.to_df(), garmin_df.to_df()])
+
+    def process(self, from_: datetime.date, to_: datetime.date) -> pd.DataFrame:
+        (
+            self.index_as_dt()
+            .aggregate_combined_dataframes()
+            .add_missing_columns(self.input_df_columns)
+            .filter_period(from_, to_)
+            .add_col_avg_speed_running_trip()
+            .add_apple_garmin_distances()
+            .add_missing_values()
+        )
+        return self.df
 
     def add_col_avg_speed_running_trip(
         self, trip_distance_meters=6000, margin_percentage=8
@@ -106,16 +149,7 @@ class DataframeTransformer:
         self.df["running_km"] = self.df.apply(
             lambda row: row.running_distance_garmin, axis=1
         )
-        self.df['total_distance_km'] = self.df.apply(lambda row: row.running_km + row.walking_km, axis=1)
+        self.df["total_distance_km"] = self.df.apply(
+            lambda row: row.running_km + row.walking_km, axis=1
+        )
         return self
-
-    def add_missing_values(self, nan_value=0.0, cols=('bloodpressurediastolic_mmHg', 'bloodpressuresystolic_mmHg', 'bodymass_kg')):
-        """Filling missing values use linear backward"""
-        for _ in cols:
-            self.df[_].replace(nan_value, np.NaN, inplace=True)
-            self.df[_].interpolate(method='linear', limit_direction='backward', inplace=True)
-        return self
-
-    def resample_sum(self, resolution='W'):
-        """Resampling resolution"""
-        self.df = self.df.resample(resolution).sum()
