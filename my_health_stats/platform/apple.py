@@ -1,13 +1,12 @@
 from collections import defaultdict
 from tempfile import NamedTemporaryFile
-from typing import Any
 from zipfile import ZipFile
 from loguru import logger
 from apple_health import HealthData
-from my_health_stats.base import DaysActivities, BaseService
+from my_health_stats.platform.base import DaysActivities, BaseService
 
 
-class AppleHealth(BaseService):
+class AppleHealthPlatform(BaseService):
 
     def __init__(self, zip_file: str):
         self.records = None
