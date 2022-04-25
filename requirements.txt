@@ -1,0 +1,9 @@
+appdirs==1.4.4
+apple-health==1.1.1
+deepmerge==1.0.1
+garminconnect==0.1.44
+jupyter==1.0.0
+loguru==0.6.0
+pandas==1.4.2
+pip-chill==1.0.1
+plotly==5.7.0
