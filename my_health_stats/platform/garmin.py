@@ -2,11 +2,11 @@ from collections import defaultdict
 
 from garminconnect import Garmin, GarminConnectConnectionError
 from loguru import logger
-from my_health_stats.base import DaysActivities, BaseService
+from my_health_stats.platform.base import DaysActivities, BaseService
 import time
 
 
-class MyGarmin(BaseService):
+class GarminPlatform(BaseService):
 
     def __init__(self, username, password):
         self.api = Garmin(username, password)
