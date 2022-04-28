@@ -1,9 +1,9 @@
-import pandas as pd
-
-from my_health_stats.platform.apple import AppleHealthPlatform
-from my_health_stats.platform.garmin import GarminPlatform
+import pandas
+import datetime
+from my_health_stats.extract.apple import AppleHealthExtract
+from my_health_stats.extract.garmin import GarminExtract
 from my_health_stats.utils import get_past_days
-from my_health_stats.transformer.datatransformer import GarminAppleTransformer
+from my_health_stats.transform.datatransformer import GarminAppleTransform
 import os
 import logging
 
@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 def get_data(number_of_days=1800):
-    ah = AppleHealthPlatform('../data/export.zip')
-    g = GarminPlatform(os.getenv('USERNAME'), os.getenv('PASSWORD'))
+    ah = AppleHealthExtract('../data/export.zip')
+    g = GarminExtract(os.getenv('USERNAME'), os.getenv('PASSWORD'))
 
     for i, day in enumerate(get_past_days(number_of_days, offset=0)):
         for f in (g, ah):
@@ -23,15 +23,16 @@ def get_data(number_of_days=1800):
 
 
 def main():
-    ah = AppleHealthPlatform('../data/export.zip')
-    g = GarminPlatform(os.getenv('USERNAME'), os.getenv('PASSWORD'))
+    ah = AppleHealthExtract('../data/export.zip')
+    g = GarminExtract(os.getenv('USERNAME'), os.getenv('PASSWORD'))
     _ = ah.get_data('2021-01-01')
     _ = g.get_data('2021-01-01')
     # df_ah = ah.to_df()
     # df_g = g.to_df()
     # df = pd.concat([df_ah, df_g])
 
-    x = GarminAppleTransformer(ah, g)
+    x = GarminAppleTransform(ah, g)
+    x.process(datetime.date(2022, 1, 1), datetime.date(2022, 3, 1))
     print(x)
     ...
 
