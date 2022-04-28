@@ -3,10 +3,10 @@ from tempfile import NamedTemporaryFile
 from zipfile import ZipFile
 from loguru import logger
 from apple_health import HealthData
-from my_health_stats.platform.base import DaysActivities, BaseService
+from my_health_stats.extract.base import DaysActivities, BaseExtract
 
 
-class AppleHealthPlatform(BaseService):
+class AppleHealthExtract(BaseExtract):
 
     def __init__(self, zip_file: str):
         self.records = None
