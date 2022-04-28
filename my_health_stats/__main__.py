@@ -3,7 +3,7 @@ import datetime
 from my_health_stats.extract.apple import AppleHealthExtract
 from my_health_stats.extract.garmin import GarminExtract
 from my_health_stats.utils import get_past_days
-from my_health_stats.transform.datatransformer import GarminAppleTransform
+from my_health_stats.transform.base import GarminAppleTransform
 import os
 import logging
 
@@ -23,6 +23,7 @@ def get_data(number_of_days=1800):
 
 
 def main():
+    # get_data(20)
     ah = AppleHealthExtract('../data/export.zip')
     g = GarminExtract(os.getenv('USERNAME'), os.getenv('PASSWORD'))
     _ = ah.get_data('2021-01-01')
@@ -32,7 +33,7 @@ def main():
     # df = pd.concat([df_ah, df_g])
 
     x = GarminAppleTransform(ah, g)
-    x.process(datetime.date(2022, 1, 1), datetime.date(2022, 3, 1))
+    x.process_pipeline(datetime.date(2022, 1, 1), datetime.date(2022, 3, 1))
     print(x)
     ...
 
