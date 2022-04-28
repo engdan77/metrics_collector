@@ -1,13 +1,16 @@
 import datetime
 
 import pandas as pd
+import pandera as pa
+from pandera.typing import Series
+from pandera import SchemaModel
 import numpy as np
 from loguru import logger
 from collections.abc import Iterable
 from abc import ABC, abstractproperty, abstractmethod
 from dataclasses import dataclass
-from my_health_stats.platform.apple import AppleHealthPlatform
-from my_health_stats.platform.garmin import GarminPlatform
+from my_health_stats.extract.apple import AppleHealthExtract
+from my_health_stats.extract.garmin import GarminExtract
 from typing import Annotated, List, Set
 
 
@@ -15,12 +18,13 @@ class TransformError(Exception):
     """Error related to transformation of data"""
 
 
-class BaseTransformer(ABC):
-    input_df_columns: Annotated[Set, "list of columns"] = NotImplemented
+class BaseTransform(ABC):
+    input_schema: pa.DataFrameSchema = NotImplemented
+    df: pd.DataFrame = NotImplemented
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        if cls.input_df_columns is NotImplemented:
+        if cls.input_schema is NotImplemented:
             raise NotImplementedError(
                 "Please implement the `input_df_columns` class variable"
             )
@@ -58,10 +62,10 @@ class BaseTransformer(ABC):
                 self.df[c] = default_value
         return self
 
-    def filter_period(self, from_: datetime.date, to_: datetime.date):
+    def filter_period(self, from_: datetime.date, to_: datetime.date, filter_by='index'):
         """Filter period between dates"""
         f, t = from_, to_
-        self.df = self.df.query("date > @f & date < @t")
+        self.df = self.df.query(f"{filter_by} > @f & {filter_by} < @t")
         return self
 
     def add_missing_values(
@@ -86,17 +90,29 @@ class BaseTransformer(ABC):
         self.df = self.df.resample(resolution).sum()
 
 
-class GarminAppleTransformer(BaseTransformer):
-    input_df_columns = ("walking_distance_meters",)
+class GarminAppleTransform(BaseTransform):
+    input_schema = pa.DataFrameSchema(
+        {
+            "distancewalkingrunning_km_sum": pa.Column(float, nullable=True),
+            "bodymass_kg": pa.Column(float, nullable=True),
+            "bloodpressuresystolic_mmHg": pa.Column(float, nullable=True),
+            "bloodpressurediastolic_mmHg": pa.Column(float, nullable=True),
+            "distancewalkingrunning_km": pa.Column(float, nullable=True),
+            "running_distance_meters": pa.Column(float, nullable=True),
+            "running_duration_seconds": pa.Column(float, nullable=True),
+            "walking_distance_meters": pa.Column(int, nullable=True),
+        },
+    )
 
-    def __init__(self, apple_df: AppleHealthPlatform, garmin_df: GarminPlatform):
+    def __init__(self, apple_df: AppleHealthExtract, garmin_df: GarminExtract):
         self.df = pd.concat([apple_df.to_df(), garmin_df.to_df()])
+        self.add_missing_columns(list(self.input_schema.columns.keys()))
+        self.input_schema.validate(self.df)
 
     def process(self, from_: datetime.date, to_: datetime.date) -> pd.DataFrame:
         (
             self.index_as_dt()
             .aggregate_combined_dataframes()
-            .add_missing_columns(self.input_df_columns)
             .filter_period(from_, to_)
             .add_col_avg_speed_running_trip()
             .add_apple_garmin_distances()
