@@ -36,8 +36,12 @@ class BaseTransform(ABC):
         return f"{self.__class__.__name__} with size {self.df.shape}"
 
     @abstractmethod
-    def process(self, from_: datetime.date, to_: datetime.date) -> pd.DataFrame:
+    def process_pipeline(self, from_: datetime.date, to_: datetime.date) -> pd.DataFrame:
         """Shall process and return dataframe with data"""
+
+    def validate(self):
+        self.add_missing_columns(list(self.input_schema.columns.keys()))
+        self.input_schema.validate(self.df)
 
     def index_as_dt(self):
         """Assure index being parsed as datetime and orders"""
@@ -106,10 +110,8 @@ class GarminAppleTransform(BaseTransform):
 
     def __init__(self, apple_df: AppleHealthExtract, garmin_df: GarminExtract):
         self.df = pd.concat([apple_df.to_df(), garmin_df.to_df()])
-        self.add_missing_columns(list(self.input_schema.columns.keys()))
-        self.input_schema.validate(self.df)
 
-    def process(self, from_: datetime.date, to_: datetime.date) -> pd.DataFrame:
+    def process_pipeline(self, from_: datetime.date, to_: datetime.date) -> pd.DataFrame:
         (
             self.index_as_dt()
             .aggregate_combined_dataframes()
