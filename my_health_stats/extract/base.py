@@ -1,13 +1,11 @@
-from collections.abc import Iterable
+import pandas as pd
 from pathlib import Path
 from typing import TypedDict, Union, Annotated, Optional
 from abc import ABC, abstractmethod
 from loguru import logger
-from datetime import date
 import json
 from appdirs import user_data_dir
 from deepmerge import always_merger
-import pandas as pd
 from statistics import mean
 
 Number = Union[int, float]
@@ -22,7 +20,7 @@ class DaysActivities(TypedDict):
     date: dict[Annotated[str, 'name of activity'], ActivityDetails]
 
 
-class BaseService(ABC):
+class BaseExtract(ABC):
 
     list_value_processors = {'max': max,
                              'min': min,
@@ -36,7 +34,7 @@ class BaseService(ABC):
 
     @abstractmethod
     def get_data_from_service(self, date_: str) -> DaysActivities:
-        """Get all data from that service"""
+        """Get all data from that extract"""
 
     def pop_existing_days(self, existing_data: DaysActivities, pop_data: DaysActivities) -> DaysActivities:
         """Remove days from pop_data if that day already exists in existing_data"""
