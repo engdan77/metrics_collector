@@ -54,7 +54,7 @@ class BaseTransform(ABC):
             self.df.drop(drop_col, axis=1, inplace=True)
         return self
 
-    def add_missing_columns(self, columns: str | Iterable, default_value=0):
+    def add_missing_columns(self, columns: str | Iterable, default_value=0.0):
         columns = [columns] if isinstance(columns, str) else columns
         for c in columns:
             if c not in self.df.columns:
@@ -100,7 +100,7 @@ class GarminAppleTransform(BaseTransform):
             "distancewalkingrunning_km": pa.Column(float, nullable=True),
             "running_distance_meters": pa.Column(float, nullable=True),
             "running_duration_seconds": pa.Column(float, nullable=True),
-            "walking_distance_meters": pa.Column(int, nullable=True),
+            "walking_distance_meters": pa.Column(float, nullable=True),
         },
     )
 
