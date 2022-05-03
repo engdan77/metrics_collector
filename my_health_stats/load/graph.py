@@ -3,10 +3,19 @@ from abc import ABC, abstractmethod
 from my_health_stats.transform.base import BaseTransform
 import plotly.graph_objects as go
 import plotly.express as px
-from typing import Callable
+from typing import Callable, Annotated, Iterable
+from enum import Enum, auto
+
+
+class GraphFormat(str, Enum):
+    html = auto()
+    png = auto()
 
 
 class BaseLoadGraph(ABC):
+    graph_formats = {GraphFormat.png: 'to_png',
+                     GraphFormat.html: 'to_html'}
+
     def __init__(self, pipeline: BaseTransform, from_: datetime.date, to_: datetime.date):
         self.pipeline = pipeline
         self.pipeline.validate()
@@ -17,18 +26,49 @@ class BaseLoadGraph(ABC):
     def to_html(self, graph_method: Callable) -> str:
         """Convert result of graph method into html"""
 
+    @abstractmethod
     def to_png(self, graph_method: Callable) -> bytes:
-        """Convert result of graph methond into png bytes"""
+        """Convert result of graph method into png bytes"""
+
+    @property
+    @abstractmethod
+    def get_all_graph_methods(self) -> Iterable[Annotated[Callable, "Class methods generating graphs"]]:
+        """Return list with methods generating graphs"""
+
+    def get_all_graphs(self, graph_format: GraphFormat):
+        format_method = getattr(self, self.graph_formats[graph_format])
+        for graph_method in self.get_all_graph_methods:
+            yield format_method(graph_method)
+
 
 class GarminAppleLoadGraph(BaseLoadGraph):
-    
+
+    @property
+    def get_all_graph_methods(self) -> Iterable[Annotated[Callable, "Class methods generating graphs"]]:
+        return (self.graph_monthly_run_count_pace,
+                self.graph_weekly_distance,
+                self.graph_weekly_weight,
+                self.graph_weekly_blood_pressure)
+
+    def to_html(self, graph_method: Callable) -> str:
+        return graph_method().to_html(include_plotlyjs="require", full_html=False)
+
+    def to_png(self, graph_method: Callable) -> bytes:
+        return graph_method().to_image(format="png")
+
     def graph_monthly_run_count_pace(self):
-        df = self.df
+        df = self.df.copy()
+        # Require preparing data
+        df = df.resample('M').agg({'avg_speed_running_trip': 'max', 'running_distance_meters': 'count'})
+        df.rename(columns={"running_distance_meters": "number_of_runs"}, inplace=True)
+        df.astype(float)
+        df['number_of_runs'].interpolate(method='linear', limit_direction='backward', axis=0, inplace=True)
+        df = df.ffill().bfill()
+        # Build graph
         fig = go.Figure()
         fig.add_trace(go.Bar(x=df.index, y=df.number_of_runs, name="Number of runs", yaxis='y'))
         fig.add_trace(
             go.Scatter(x=df.index, y=df.avg_speed_running_trip, name="Max minutes/Km", yaxis="y2"))
-        # Create axis objects
         fig.update_layout(xaxis=dict(domain=[0.5, 0.5]),
                           yaxis=dict(
                               title="Number of runs",
