@@ -1,16 +1,24 @@
 import datetime
-from abc import ABC
+from abc import ABC, abstractmethod
 from my_health_stats.transform.base import BaseTransform
 import plotly.graph_objects as go
 import plotly.express as px
+from typing import Callable
 
 
 class BaseLoadGraph(ABC):
-    def __init__(self, pipeline: BaseTransform, from_=datetime.date, to_=datetime.date):
+    def __init__(self, pipeline: BaseTransform, from_: datetime.date, to_: datetime.date):
         self.pipeline = pipeline
         self.pipeline.validate()
         self.df = self.pipeline.process_pipeline(from_, to_)
+        # html = fig.to_html(include_plotlyjs="require", full_html=False)
 
+    @abstractmethod
+    def to_html(self, graph_method: Callable) -> str:
+        """Convert result of graph method into html"""
+
+    def to_png(self, graph_method: Callable) -> bytes:
+        """Convert result of graph methond into png bytes"""
 
 class GarminAppleLoadGraph(BaseLoadGraph):
     
@@ -30,7 +38,7 @@ class GarminAppleLoadGraph(BaseLoadGraph):
                                       autorange="reversed"))
         fig.update_layout(title_text="Monthly run counts and max pace", width=900)
         fig.update_layout(legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01), legend_title_text=None)
-        fig.show()
+        return fig
         
     def graph_weekly_distance(self):
         df = self.df.resample('W').sum()
