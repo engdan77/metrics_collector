@@ -4,6 +4,7 @@ from my_health_stats.extract.apple import AppleHealthExtract
 from my_health_stats.extract.garmin import GarminExtract
 from my_health_stats.utils import get_past_days
 from my_health_stats.transform.base import GarminAppleTransform
+from my_health_stats.load.graph import GarminAppleLoadGraph
 import os
 import logging
 
@@ -33,8 +34,12 @@ def main():
     # df = pd.concat([df_ah, df_g])
 
     x = GarminAppleTransform(ah, g)
-    x.process_pipeline(datetime.date(2022, 1, 1), datetime.date(2022, 3, 1))
+
+    # x.process_pipeline(datetime.date(2022, 1, 1), datetime.date(2022, 3, 1))
     print(x)
+
+    graph = GarminAppleLoadGraph(x, datetime.date(2021, 1, 1), datetime.date(2021, 3, 1))
+    print(graph)
     ...
 
 
