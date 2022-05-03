@@ -4,7 +4,7 @@ from my_health_stats.extract.apple import AppleHealthExtract
 from my_health_stats.extract.garmin import GarminExtract
 from my_health_stats.utils import get_past_days
 from my_health_stats.transform.base import GarminAppleTransform
-from my_health_stats.load.graph import GarminAppleLoadGraph
+from my_health_stats.load.graph import GarminAppleLoadGraph, GraphFormat
 import os
 import logging
 
@@ -40,6 +40,7 @@ def main():
 
     graph = GarminAppleLoadGraph(x, datetime.date(2021, 1, 1), datetime.date(2021, 3, 1))
     print(graph)
+    graphs = next(graph.get_all_graphs(GraphFormat.png))
     ...
 
 
