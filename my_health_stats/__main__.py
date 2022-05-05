@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas
 import datetime
 from my_health_stats.extract.apple import AppleHealthExtract
@@ -25,7 +27,8 @@ def get_data(number_of_days=1800):
 
 def main():
     # get_data(20)
-    ah = AppleHealthExtract('../data/export.zip')
+    apple_bytes = Path('../data/export.zip').read_bytes()
+    ah = AppleHealthExtract(apple_bytes)
     g = GarminExtract(os.getenv('USERNAME'), os.getenv('PASSWORD'))
     _ = ah.get_data('2021-01-01')
     _ = g.get_data('2021-01-01')
@@ -38,10 +41,11 @@ def main():
     # x.process_pipeline(datetime.date(2022, 1, 1), datetime.date(2022, 3, 1))
     print(x)
 
-    graph = GarminAppleLoadGraph(x, datetime.date(2021, 1, 1), datetime.date(2021, 3, 1))
-    print(graph)
-    graphs = next(graph.get_all_graphs(GraphFormat.png))
-    ...
+    graph_loader = GarminAppleLoadGraph(x, datetime.date(2021, 1, 1), datetime.date(2021, 3, 1))
+
+    for graph_bytes in graph_loader.get_all_graphs(GraphFormat.png):
+        Path('/tmp/a.png').write_bytes(graph_bytes)
+        print('next')
 
 
 if __name__ == '__main__':
