@@ -43,8 +43,8 @@ def main():
 
     graph_loader = GarminAppleLoadGraph(x, datetime.date(2021, 1, 1), datetime.date(2021, 3, 1))
 
-    for graph_bytes in graph_loader.get_all_graphs(GraphFormat.png):
-        Path('/tmp/a.png').write_bytes(graph_bytes)
+    for graph_bytes in graph_loader.get_all_graphs(GraphFormat.html):
+        Path('/tmp/a.html').write_text(graph_bytes)
         print('next')
 
 
