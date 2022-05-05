@@ -1,5 +1,6 @@
 import datetime
 from abc import ABC, abstractmethod
+import plotly.graph_objs
 from my_health_stats.transform.base import BaseTransform
 import plotly.graph_objects as go
 import plotly.express as px
@@ -56,7 +57,7 @@ class GarminAppleLoadGraph(BaseLoadGraph):
     def to_png(self, graph_method: Callable) -> bytes:
         return graph_method().to_image(format="png")
 
-    def graph_monthly_run_count_pace(self):
+    def graph_monthly_run_count_pace(self) -> plotly.graph_objects.Figure:
         df = self.df.copy()
         # Require preparing data
         df = df.resample('M').agg({'avg_speed_running_trip': 'max', 'running_distance_meters': 'count'})
@@ -80,24 +81,27 @@ class GarminAppleLoadGraph(BaseLoadGraph):
         fig.update_layout(legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01), legend_title_text=None)
         return fig
         
-    def graph_weekly_distance(self):
+    def graph_weekly_distance(self) -> plotly.graph_objs.Figure:
         df = self.df.resample('W').sum()
         df['walking_running_km_mean'] = df.total_distance_km.mean()
-        b = px.bar(df, y=['walking_km', 'running_km'], title="Weekly distance", height=500)
-        b.update_layout(legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01), legend_title_text=None)
-        l = px.line(df, y="walking_running_km_mean")
-        b.add_traces(l.data)
+        fig = px.bar(df, y=['walking_km', 'running_km'], title="Weekly distance", height=500)
+        fig.update_layout(legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01), legend_title_text=None)
+        line = px.line(df, y="walking_running_km_mean")
+        fig.add_traces(line.data)
+        return fig
     
-    def graph_weekly_blood_pressure(self):
+    def graph_weekly_blood_pressure(self) -> plotly.graph_objs.Figure:
         df = self.df.resample('W').max()
         both = ["bloodpressuresystolic_mmHg", "bloodpressurediastolic_mmHg"]
         for _ in both:
             df[_] = df[_].rolling(3).mean()
-        l = px.line(df, y=both, title="Weekly blood pressure", height=500)
-        l.update_layout(legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01), legend_title_text=None)
+        fig = px.line(df, y=both, title="Weekly blood pressure", height=500)
+        fig.update_layout(legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01), legend_title_text=None)
+        return fig
         
-    def graph_weekly_weight(self):
+    def graph_weekly_weight(self) -> plotly.graph_objs.Figure:
         df = self.df.resample('W').max()
         df['bodymass_kg'] = df['bodymass_kg'].rolling(5).mean()
-        l = px.line(df, y='bodymass_kg', title="Weekly average weight", height=500)
-        l.update_layout(legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01), legend_title_text=None)
+        fig = px.line(df, y='bodymass_kg', title="Weekly average weight", height=500)
+        fig.update_layout(legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01), legend_title_text=None)
+        return fig
