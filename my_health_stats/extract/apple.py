@@ -8,10 +8,10 @@ from my_health_stats.extract.base import DaysActivities, BaseExtract
 
 class AppleHealthExtract(BaseExtract):
 
-    def __init__(self, zip_file: str):
+    def __init__(self, zipped_xml: bytes):
         self.records = None
         self.xml = None
-        self.zip_file = zip_file
+        self.zipped_xml = zipped_xml
         self.activity_prefix = "HKQuantityTypeIdentifier"
         self.activities = [
             "HKQuantityTypeIdentifierBloodPressureDiastolic",
@@ -25,7 +25,10 @@ class AppleHealthExtract(BaseExtract):
         self.parsed_complete = False
 
     def parse_records(self):
-        self.xml = self._extract_xml(self.zip_file)
+        with NamedTemporaryFile() as f:
+            logger.debug(f'writing zipped apple xml to {f.name}')
+            f.write(self.zipped_xml)
+            self.xml = self._extract_xml(f.name)
         logger.debug(f"found xml {int(len(self.xml) / 1000)} KB")
         self.records = self._get_health_data_from_xml(self.xml)
         self.parsed_complete = True
