@@ -1,3 +1,5 @@
+from typing import Iterable
+
 import uvicorn
 from loguru import logger
 import asyncio
@@ -16,7 +18,7 @@ class WebServer:
     async_services_start_method = None
     extra_async_services = None
 
-    def __init__(self, extra_async_services: list[AsyncService] = None):
+    def __init__(self, extra_async_services: Iterable[AsyncService] = None):
         print("start web")
         self.__class__.extra_async_services = extra_async_services
         self.mounts()
