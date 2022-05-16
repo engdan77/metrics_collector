@@ -1,3 +1,6 @@
+import asyncio
+import os
+import sys
 from pathlib import Path
 
 import pandas
@@ -7,11 +10,16 @@ from my_health_stats.extract.garmin import GarminExtract
 from my_health_stats.utils import get_past_days
 from my_health_stats.transform.base import GarminAppleTransform
 from my_health_stats.load.graph import GarminAppleLoadGraph, GraphFormat
-import os
+from scheduler import MyScheduler
+from scheduler.tasks import default_initial_scheduled_tasks
+from web.service import WebServer
+from loguru import logger
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+
+def start_initial_loop():
+    scheduler = MyScheduler(initials=default_initial_scheduled_tasks)
+    web_server = WebServer((scheduler,))  # send services to be started with uvicorn
 
 
 def get_data(number_of_days=1800):
@@ -25,7 +33,7 @@ def get_data(number_of_days=1800):
             print(result)
 
 
-def main():
+def test_graphs():
     # get_data(20)
     apple_bytes = Path('../data/export.zip').read_bytes()
     ah = AppleHealthExtract(apple_bytes)
@@ -46,6 +54,12 @@ def main():
     for graph_bytes in graph_loader.get_all_graphs(GraphFormat.html):
         Path('/tmp/a.html').write_text(graph_bytes)
         print('next')
+
+
+def main():
+    logger.remove()
+    logger.add(sys.stdout, level=logging.DEBUG)
+    start_initial_loop()
 
 
 if __name__ == '__main__':
