@@ -5,7 +5,7 @@ import datetime
 from my_health_stats.extract.apple import AppleHealthExtract
 from my_health_stats.extract.garmin import GarminExtract
 from my_health_stats.utils import get_past_days
-from my_health_stats.transform.base import GarminAppleTransform
+from my_health_stats.transform.transformers import GarminAppleTransform
 from my_health_stats.load.graph import GarminAppleLoadGraph, GraphFormat
 from scheduler import MyScheduler
 from scheduler.tasks import default_initial_scheduled_tasks
