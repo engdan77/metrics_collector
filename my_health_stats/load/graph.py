@@ -1,7 +1,6 @@
-import datetime
-from abc import ABC, abstractmethod
 import plotly.graph_objs
-from my_health_stats.transform.base import BaseTransform
+
+from my_health_stats.load.base import BaseLoadGraph
 import plotly.graph_objects as go
 import plotly.express as px
 from typing import Callable, Annotated, Iterable
@@ -11,35 +10,6 @@ from enum import Enum, auto
 class GraphFormat(str, Enum):
     html = auto()
     png = auto()
-
-
-class BaseLoadGraph(ABC):
-    graph_formats = {GraphFormat.png: 'to_png',
-                     GraphFormat.html: 'to_html'}
-
-    def __init__(self, pipeline: BaseTransform, from_: datetime.date, to_: datetime.date):
-        self.pipeline = pipeline
-        self.pipeline.validate()
-        self.df = self.pipeline.process_pipeline(from_, to_)
-        # html = fig.to_html(include_plotlyjs="require", full_html=False)
-
-    @abstractmethod
-    def to_html(self, graph_method: Callable) -> str:
-        """Convert result of graph method into html"""
-
-    @abstractmethod
-    def to_png(self, graph_method: Callable) -> bytes:
-        """Convert result of graph method into png bytes"""
-
-    @property
-    @abstractmethod
-    def get_all_graph_methods(self) -> Iterable[Annotated[Callable, "Class methods generating graphs"]]:
-        """Return list with methods generating graphs"""
-
-    def get_all_graphs(self, graph_format: GraphFormat):
-        format_method = getattr(self, self.graph_formats[graph_format])
-        for graph_method in self.get_all_graph_methods:
-            yield format_method(graph_method)
 
 
 class GarminAppleLoadGraph(BaseLoadGraph):
