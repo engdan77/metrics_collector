@@ -7,6 +7,8 @@ from loguru import logger
 from collections.abc import Iterable
 from abc import ABC, abstractmethod
 
+from my_health_stats.orchestrator.generic import register_dag_name
+
 
 class TransformError(Exception):
     """Error related to transformation of data"""
@@ -14,15 +16,17 @@ class TransformError(Exception):
 
 class BaseTransform(ABC):
     input_schema: pa.DataFrameSchema = NotImplemented
-    df: pd.DataFrame = NotImplemented
+    dag_name: str = NotImplemented
+    df: pd.DataFrame = None
 
     @classmethod
     def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        if cls.input_schema is NotImplemented:
-            raise NotImplementedError(
-                "Please implement the `input_df_columns` class variable"
-            )
+        for _ in (cls.input_schema, cls.df, cls.dag_name):
+            if _ is NotImplemented:
+                raise NotImplementedError(
+                    f"Assure class variables being declared in subclass"
+                )
+        register_dag_name(cls)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.df!r})"

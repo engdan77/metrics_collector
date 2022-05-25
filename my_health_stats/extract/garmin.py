@@ -1,15 +1,25 @@
 from collections import defaultdict
+from dataclasses import dataclass
 
 from garminconnect import Garmin, GarminConnectConnectionError
 from loguru import logger
-from my_health_stats.extract.base import DaysActivities, BaseExtract
+from my_health_stats.extract.base import DaysActivities, BaseExtract, BaseExtractParameters
 import time
+
+
+@dataclass
+class GarminExtractParameters(BaseExtractParameters):
+    username: str
+    password: str
 
 
 class GarminExtract(BaseExtract):
 
-    def __init__(self, username, password):
-        self.api = Garmin(username, password)
+    dag_name = 'garmin_apple'
+
+    def __init__(self, parameters: GarminExtractParameters):
+        p = parameters
+        self.api = Garmin(p.username, p.password)
         self.logged_in = False
 
     def login(self, retries=5, timer=10):

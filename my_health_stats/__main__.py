@@ -2,11 +2,11 @@ import os
 import sys
 from pathlib import Path
 import datetime
-from my_health_stats.extract.apple import AppleHealthExtract
-from my_health_stats.extract.garmin import GarminExtract
+from my_health_stats.extract.apple import AppleHealthExtract, AppleHealthExtractParameters
+from my_health_stats.extract.garmin import GarminExtract, GarminExtractParameters
 from my_health_stats.utils import get_past_days
 from my_health_stats.transform.transformers import GarminAppleTransform
-from my_health_stats.load.graph import GarminAppleLoadGraph, GraphFormat
+from my_health_stats.load.graph import GarminAppleLoadGraph
 from scheduler import MyScheduler
 from scheduler.tasks import default_initial_scheduled_tasks
 from web.service import WebServer
@@ -33,8 +33,10 @@ def get_data(number_of_days=1800):
 def test_graphs():
     # get_data(20)
     apple_bytes = Path('../data/export.zip').read_bytes()
-    ah = AppleHealthExtract(apple_bytes)
-    g = GarminExtract(os.getenv('USERNAME'), os.getenv('PASSWORD'))
+    ah_params = AppleHealthExtractParameters(apple_bytes)
+    ah = AppleHealthExtract(ah_params)
+    g_params = GarminExtractParameters(os.getenv('USERNAME'), os.getenv('PASSWORD'))
+    g = GarminExtract(g_params)
     _ = ah.get_data('2021-01-01')
     _ = g.get_data('2021-01-01')
     # df_ah = ah.to_df()
@@ -48,15 +50,16 @@ def test_graphs():
 
     graph_loader = GarminAppleLoadGraph(x, datetime.date(2021, 1, 1), datetime.date(2021, 3, 1))
 
-    for graph_bytes in graph_loader.get_all_graphs(GraphFormat.html):
-        Path('/tmp/a.html').write_text(graph_bytes)
-        print('next')
+    # for graph_bytes in graph_loader.get_all_graphs(GraphFormat.html):
+    #     Path('/tmp/a.html').write_text(graph_bytes)
+    #     print('next')
 
 
 def main():
     logger.remove()
     logger.add(sys.stdout, level=logging.DEBUG)
-    start_initial_loop()
+    # start_initial_loop()
+    test_graphs()
 
 
 if __name__ == '__main__':

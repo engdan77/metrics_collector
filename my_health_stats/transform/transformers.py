@@ -22,6 +22,7 @@ class GarminAppleTransform(BaseTransform):
             "walking_distance_meters": pa.Column(float, nullable=True),
         },
     )
+    dag_name = 'garmin_apple'
 
     def __init__(self, apple_df: AppleHealthExtract, garmin_df: GarminExtract):
         self.df = pd.concat([apple_df.to_df(), garmin_df.to_df()])

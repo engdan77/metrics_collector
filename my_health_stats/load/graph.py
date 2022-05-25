@@ -1,15 +1,14 @@
 import plotly.graph_objs
 
-from my_health_stats.load.base import BaseLoadGraph
 import plotly.graph_objects as go
 import plotly.express as px
 from typing import Callable, Annotated, Iterable
 from enum import Enum, auto
 
+from my_health_stats.load.base import BaseLoadGraph
 
-class GraphFormat(str, Enum):
-    html = auto()
-    png = auto()
+
+
 
 
 class GarminAppleLoadGraph(BaseLoadGraph):

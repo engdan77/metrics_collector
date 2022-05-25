@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import pandas as pd
 from pathlib import Path
 from typing import TypedDict, Union, Annotated, Optional
@@ -7,6 +9,7 @@ import json
 from appdirs import user_data_dir
 from deepmerge import always_merger
 from statistics import mean
+from my_health_stats.orchestrator.generic import register_dag_name
 
 Number = Union[int, float]
 
@@ -20,12 +23,28 @@ class DaysActivities(TypedDict):
     date: dict[Annotated[str, 'name of activity'], ActivityDetails]
 
 
+@dataclass
+class BaseExtractParameters:
+    ...
+
+
 class BaseExtract(ABC):
 
     list_value_processors = {'max': max,
                              'min': min,
                              'mean': mean,
                              'sum': sum}
+
+    dag_name: str = NotImplemented
+
+    @abstractmethod
+    def __init__(self, parameters: BaseExtractParameters):
+        ...
+
+    def __init_subclass__(cls, **kwargs):
+        if cls.dag_name is NotImplemented:
+            raise NotImplemented("the etl_alias is required for extract, transform and load subclasses")
+        register_dag_name(cls)
 
     def get_cache_file(self):
         cache_dir = user_data_dir(__package__)

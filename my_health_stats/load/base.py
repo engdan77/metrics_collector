@@ -1,9 +1,13 @@
 import datetime
 from abc import ABC, abstractmethod
+from enum import Enum, auto
 from typing import Callable, Iterable, Annotated
-
-from my_health_stats.load.graph import GraphFormat
 from my_health_stats.transform.base import BaseTransform
+
+
+class GraphFormat(str, Enum):
+    html = auto()
+    png = auto()
 
 
 class BaseLoadGraph(ABC):

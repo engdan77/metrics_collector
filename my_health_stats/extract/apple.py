@@ -1,17 +1,25 @@
 from collections import defaultdict
+from dataclasses import dataclass
 from tempfile import NamedTemporaryFile
 from zipfile import ZipFile
 from loguru import logger
 from apple_health import HealthData
-from my_health_stats.extract.base import DaysActivities, BaseExtract
+from my_health_stats.extract.base import DaysActivities, BaseExtract, BaseExtractParameters
+
+
+@dataclass
+class AppleHealthExtractParameters:
+    zipped_xml: bytes
 
 
 class AppleHealthExtract(BaseExtract):
 
-    def __init__(self, zipped_xml: bytes):
+    dag_name = 'garmin_apple'
+
+    def __init__(self, parameters: AppleHealthExtractParameters):
         self.records = None
         self.xml = None
-        self.zipped_xml = zipped_xml
+        self.zipped_xml = parameters.zipped_xml
         self.activity_prefix = "HKQuantityTypeIdentifier"
         self.activities = [
             "HKQuantityTypeIdentifierBloodPressureDiastolic",
