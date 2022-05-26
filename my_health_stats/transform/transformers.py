@@ -24,9 +24,6 @@ class GarminAppleTransform(BaseTransform):
     )
     dag_name = 'garmin_apple'
 
-    def __init__(self, apple_df: AppleHealthExtract, garmin_df: GarminExtract):
-        self.df = pd.concat([apple_df.to_df(), garmin_df.to_df()])
-
     def process_pipeline(self, from_: datetime.date, to_: datetime.date) -> pd.DataFrame:
         (
             self.index_as_dt()
