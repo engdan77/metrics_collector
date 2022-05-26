@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 from pathlib import Path
-from typing import TypedDict, Union, Annotated, Optional
+from typing import TypedDict, Union, Annotated, Optional, Iterable
 from abc import ABC, abstractmethod
 from loguru import logger
 import json
@@ -35,7 +35,7 @@ class BaseExtract(ABC):
                              'mean': mean,
                              'sum': sum}
 
-    dag_name: str = NotImplemented
+    dag_name: str | Iterable = NotImplemented
 
     @abstractmethod
     def __init__(self, parameters: BaseExtractParameters):

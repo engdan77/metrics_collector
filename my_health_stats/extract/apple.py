@@ -1,15 +1,18 @@
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from tempfile import NamedTemporaryFile
+from typing import Callable, Annotated
 from zipfile import ZipFile
 from loguru import logger
 from apple_health import HealthData
 from my_health_stats.extract.base import DaysActivities, BaseExtract, BaseExtractParameters
+from my_health_stats.storage.uriloader import uri_loader
 
 
 @dataclass
 class AppleHealthExtractParameters:
-    zipped_xml: bytes
+    uri_string: str
+    uri_loader: Callable[[Annotated[str, "uri_string"]], bytes] = field(init=False, default=uri_loader)
 
 
 class AppleHealthExtract(BaseExtract):
@@ -17,9 +20,9 @@ class AppleHealthExtract(BaseExtract):
     dag_name = 'garmin_apple'
 
     def __init__(self, parameters: AppleHealthExtractParameters):
+        self.parameters = parameters
         self.records = None
         self.xml = None
-        self.zipped_xml = parameters.zipped_xml
         self.activity_prefix = "HKQuantityTypeIdentifier"
         self.activities = [
             "HKQuantityTypeIdentifierBloodPressureDiastolic",
@@ -35,7 +38,7 @@ class AppleHealthExtract(BaseExtract):
     def parse_records(self):
         with NamedTemporaryFile() as f:
             logger.debug(f'writing zipped apple xml to {f.name}')
-            f.write(self.zipped_xml)
+            f.write(self.parameters.uri_loader(self.parameters.uri_string))
             self.xml = self._extract_xml(f.name)
         logger.debug(f"found xml {int(len(self.xml) / 1000)} KB")
         self.records = self._get_health_data_from_xml(self.xml)

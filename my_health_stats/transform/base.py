@@ -16,8 +16,13 @@ class TransformError(Exception):
 
 class BaseTransform(ABC):
     input_schema: pa.DataFrameSchema = NotImplemented
-    dag_name: str = NotImplemented
+    dag_name: str | Iterable = NotImplemented
     df: pd.DataFrame = None
+
+    def __init__(self, *extract_classes):
+        """Extract classes as arguments and merges"""
+        self.df = pd.concat([getattr(_, 'to_df')() for _ in extract_classes])
+
 
     @classmethod
     def __init_subclass__(cls, **kwargs):
