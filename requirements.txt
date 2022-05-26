@@ -14,3 +14,4 @@ pywebio~=1.6.0
 numpy~=1.21.6
 uvicorn~=0.17.6
 APScheduler~=3.9.1
+fs~=2.4.16
