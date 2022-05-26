@@ -4,12 +4,14 @@ from collections import defaultdict
 
 # from my_health_stats.load.base import BaseLoadGraph
 # from my_health_stats.transform.base import BaseTransform
-from typing import Type, Annotated
+from typing import Type, Annotated, Iterable
 
 
 def register_dag_name(cls):
-    dag_name = cls.dag_name
-    Orchestrator.registered_etl_entities[dag_name].append(cls)
+    c = cls.dag_name
+    names = (c,) if isinstance(c, str) else c
+    for _ in names:
+        Orchestrator.registered_etl_entities[_].append(cls)
 
 
 class Orchestrator:
@@ -18,12 +20,10 @@ class Orchestrator:
         Annotated[str, "dag name"], list[Annotated[Type, "classes"]]
     ] = defaultdict(list)
 
-    @abstractmethod
     def extract_and_transform(self):
         """Code for extracting e.g. using parameters in __init__"""
         ...
 
-    @abstractmethod
     def get_graph_class(self):
         """Return a simple class"""
         ...
