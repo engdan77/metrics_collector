@@ -58,8 +58,8 @@ def test_graphs():
 def main():
     logger.remove()
     logger.add(sys.stdout, level=logging.DEBUG)
-    # start_initial_loop()
-    test_graphs()
+    start_initial_loop()
+    # test_graphs()
 
 
 if __name__ == '__main__':
