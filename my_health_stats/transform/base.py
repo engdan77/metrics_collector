@@ -6,6 +6,7 @@ import numpy as np
 from loguru import logger
 from collections.abc import Iterable
 from abc import ABC, abstractmethod
+from my_health_stats.extract.base import BaseExtract
 
 from my_health_stats.orchestrator.generic import register_dag_name
 
@@ -19,10 +20,9 @@ class BaseTransform(ABC):
     dag_name: str | Iterable = NotImplemented
     df: pd.DataFrame = None
 
-    def __init__(self, *extract_classes):
+    def __init__(self, *extract_classes: list[BaseExtract]):
         """Extract classes as arguments and merges"""
         self.df = pd.concat([getattr(_, 'to_df')() for _ in extract_classes])
-
 
     @classmethod
     def __init_subclass__(cls, **kwargs):
