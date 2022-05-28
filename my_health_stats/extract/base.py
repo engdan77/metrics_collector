@@ -1,8 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
+from inspect import get_annotations
 
 import pandas as pd
 from pathlib import Path
-from typing import TypedDict, Union, Annotated, Optional, Iterable
+from typing import TypedDict, Union, Annotated, Optional, Iterable, Type
 from abc import ABC, abstractmethod
 from loguru import logger
 import json
@@ -12,6 +13,8 @@ from statistics import mean
 from my_health_stats.orchestrator.generic import register_dag_name
 
 Number = Union[int, float]
+
+parameter_dict = dict[Annotated[str, "Field name"], Type]
 
 
 class ActivityDetails(TypedDict):
@@ -45,6 +48,14 @@ class BaseExtract(ABC):
         if cls.dag_name is NotImplemented:
             raise NotImplemented("the etl_alias is required for extract, transform and load subclasses")
         register_dag_name(cls)
+
+    @classmethod
+    def get_parameters(cls) -> parameter_dict:
+        params = {}
+        for field in fields(get_annotations(cls.__init__).get('parameters')):
+            if field.init:
+                params[field.name] = field.type
+        return params
 
     def get_cache_file(self):
         cache_dir = user_data_dir(__package__)
