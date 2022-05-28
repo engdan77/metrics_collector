@@ -3,12 +3,8 @@ import plotly.graph_objs
 import plotly.graph_objects as go
 import plotly.express as px
 from typing import Callable, Annotated, Iterable
-from enum import Enum, auto
 
 from my_health_stats.load.base import BaseLoadGraph
-
-
-
 
 
 class GarminAppleLoadGraph(BaseLoadGraph):
