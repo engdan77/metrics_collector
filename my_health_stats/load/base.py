@@ -2,6 +2,8 @@ import datetime
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import Callable, Iterable, Annotated
+
+from my_health_stats.orchestrator.generic import register_dag_name
 from my_health_stats.transform.base import BaseTransform
 
 
@@ -14,10 +16,17 @@ class BaseLoadGraph(ABC):
     graph_formats = {GraphFormat.png: 'to_png',
                      GraphFormat.html: 'to_html'}
 
+    dag_name: str | Iterable = NotImplemented
+
     def __init__(self, pipeline: BaseTransform, from_: datetime.date, to_: datetime.date):
         self.pipeline = pipeline
         self.pipeline.validate()
         self.df = self.pipeline.process_pipeline(from_, to_)
+
+    def __init_subclass__(cls, **kwargs):
+        if cls.dag_name is NotImplemented:
+            raise NotImplemented("the dag_name is required for extract, transform and load subclasses")
+        register_dag_name(cls)
 
     @abstractmethod
     def to_html(self, graph_method: Callable) -> str:

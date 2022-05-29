@@ -46,7 +46,7 @@ class BaseExtract(ABC):
 
     def __init_subclass__(cls, **kwargs):
         if cls.dag_name is NotImplemented:
-            raise NotImplemented("the etl_alias is required for extract, transform and load subclasses")
+            raise NotImplemented("the dag_name is required for extract, transform and load subclasses")
         register_dag_name(cls)
 
     @classmethod

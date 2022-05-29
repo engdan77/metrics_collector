@@ -17,7 +17,7 @@ class AppleHealthExtractParameters:
 
 class AppleHealthExtract(BaseExtract):
 
-    dag_name = 'garmin_apple'
+    dag_name = 'garmin_and_apple'
 
     def __init__(self, parameters: AppleHealthExtractParameters):
         self.parameters = parameters

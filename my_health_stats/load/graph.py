@@ -8,6 +8,7 @@ from my_health_stats.load.base import BaseLoadGraph
 
 
 class GarminAppleLoadGraph(BaseLoadGraph):
+    dag_name = 'garmin_and_apple'
 
     @property
     def get_all_graph_methods(self) -> Iterable[Annotated[Callable, "Class methods generating graphs"]]:

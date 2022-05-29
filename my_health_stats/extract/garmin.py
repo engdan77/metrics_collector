@@ -15,7 +15,7 @@ class GarminExtractParameters(BaseExtractParameters):
 
 class GarminExtract(BaseExtract):
 
-    dag_name = ('garmin_apple', 'foo')
+    dag_name = 'garmin_and_apple'
 
     def __init__(self, parameters: GarminExtractParameters):
         p = parameters
