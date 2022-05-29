@@ -1,11 +1,13 @@
 from pywebio.input import input, FLOAT
 from pywebio.output import put_text
 from my_health_stats.orchestrator.generic import Orchestrator
+from loguru import logger
 
 
 def main_ui():
     o = Orchestrator()
     args = o.get_extract_parameters()
+    logger.debug(args)
     ...
 
     # height = input("Input your height(cm)：", type=FLOAT)
