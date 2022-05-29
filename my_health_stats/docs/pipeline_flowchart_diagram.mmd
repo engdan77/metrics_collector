@@ -1,0 +1,30 @@
+flowchart
+
+subgraph High Level Design
+    direction BT
+    subgraph BP["Orchestrator"]
+        et["Orchestrator()\n+get_extract_parameters()"]
+    end
+        subgraph ETL
+            direction LR
+                subgraph Extract
+                direction BT
+                    gd["@abstract\n+get_data_from_service()"] --> BE["BaseExtract()"]
+                end
+                subgraph Transform
+                direction BT
+                    pp["@abstract\n+process_pipeline(from, to)\n+input_schema"] --> BT["BaseTransform()"]
+                end
+                subgraph Load
+                direction BT
+                    ga["@abstract\n+get_all_graph_methods(graph_format)\n+to_html()\n+to_png()"] --> BL["BaseLoadGaph()"]
+                end
+            end
+        subgraph FE["Web/REST"]
+            x
+        end
+    end
+    
+Extract ==> Transform ==> Load
+ETL ==> BP
+BP ==> FE
