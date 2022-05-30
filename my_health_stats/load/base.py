@@ -18,10 +18,10 @@ class BaseLoadGraph(ABC):
 
     dag_name: str | Iterable = NotImplemented
 
-    def __init__(self, pipeline: BaseTransform, from_: datetime.date, to_: datetime.date):
-        self.pipeline = pipeline
-        self.pipeline.validate()
-        self.df = self.pipeline.process_pipeline(from_, to_)
+    def __init__(self, transformer: BaseTransform, from_: datetime.date, to_: datetime.date):
+        self.transformer = transformer
+        self.transformer.validate()
+        self.df = self.transformer.process_pipeline(from_, to_)
 
     def __init_subclass__(cls, **kwargs):
         if cls.dag_name is NotImplemented:
@@ -36,7 +36,6 @@ class BaseLoadGraph(ABC):
     def to_png(self, graph_method: Callable) -> bytes:
         """Convert result of graph method into png bytes"""
 
-    @property
     @abstractmethod
     def get_all_graph_methods(self) -> Iterable[Annotated[Callable, "Class methods generating graphs"]]:
         """Return list with methods generating graphs"""
