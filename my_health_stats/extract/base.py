@@ -57,6 +57,10 @@ class BaseExtract(ABC):
                 params[field.name] = field.type
         return params
 
+    @classmethod
+    def get_extract_parameter_class(cls):
+        return get_annotations(cls.__init__).get('parameters', None)
+
     def get_cache_file(self):
         cache_dir = user_data_dir(__package__)
         Path(cache_dir).mkdir(exist_ok=True)
