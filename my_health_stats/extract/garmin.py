@@ -9,8 +9,8 @@ import time
 
 @dataclass
 class GarminExtractParameters(BaseExtractParameters):
-    username: str
-    password: str
+    garmin_username: str
+    garmin_password: str
 
 
 class GarminExtract(BaseExtract):
@@ -18,8 +18,8 @@ class GarminExtract(BaseExtract):
     dag_name = 'garmin_and_apple'
 
     def __init__(self, parameters: GarminExtractParameters):
-        p = parameters
-        self.api = Garmin(p.username, p.password)
+        self.parameters = parameters
+        self.api = Garmin(self.parameters.garmin_username, self.parameters.garmin_password)
         self.logged_in = False
 
     def login(self, retries=5, timer=10):
