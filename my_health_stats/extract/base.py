@@ -70,7 +70,8 @@ class BaseExtract(ABC):
     def get_data_from_service(self, date_: str) -> DaysActivities:
         """Get all data from that extract"""
 
-    def pop_existing_days(self, existing_data: DaysActivities, pop_data: DaysActivities) -> DaysActivities:
+    @staticmethod
+    def pop_existing_days(existing_data: DaysActivities, pop_data: DaysActivities) -> DaysActivities:
         """Remove days from pop_data if that day already exists in existing_data"""
         output_pop_data = pop_data.copy()
         for day in pop_data.keys():
@@ -87,7 +88,8 @@ class BaseExtract(ABC):
         with open(filename, "w") as f:
             json.dump(data, f, indent=2)
 
-    def from_json(self, filename: Optional[str], date_=None) -> Union[DaysActivities, None]:
+    @staticmethod
+    def from_json(filename: Optional[str], date_=None) -> Union[DaysActivities, None]:
         if not Path(filename).exists():
             return None
         with open(filename) as f:
@@ -98,10 +100,12 @@ class BaseExtract(ABC):
             return {date_: j[date_]} if date_ in j else None
 
     def get_data(self, date_: str) -> DaysActivities:
+        """This is the main method supposed to be used"""
         cache_file = self.get_cache_file()
         logger.debug(f'attempt get cache data from {cache_file}')
         if (j := self.from_json(cache_file, date_)) is not None:
             return j
+        logger.debug(f'getting data for {date_}')
         j = self.get_data_from_service(date_)
         self.to_json(cache_file, j)
         return j
