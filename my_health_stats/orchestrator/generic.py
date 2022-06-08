@@ -35,7 +35,7 @@ class Orchestrator:
                      ClassType.transform: my_health_stats.transform.base.BaseTransform,
                      ClassType.load: my_health_stats.load.base.BaseLoadGraph}
 
-    def get_extract_parameters(self) -> dict[str, parameter_dict]:
+    def get_extract_parameters(self) -> dict[Annotated[str, 'dag_name'], dict[str, parameter_dict]]:
         result = defaultdict(dict)
         for dag_name in self.registered_etl_entities.keys():
             extract_classes = self.get_registered_classes(dag_name, ClassType.extract)
