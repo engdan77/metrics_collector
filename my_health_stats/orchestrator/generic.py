@@ -1,7 +1,7 @@
 from __future__ import annotations  # required to avoid circular imports for typing purposes
 import datetime
 from collections import defaultdict
-from typing import Type, Annotated, Iterable, Callable
+from typing import Type, Annotated, Iterable, Callable, Union
 import my_health_stats
 from enum import Enum, auto
 from typing import TYPE_CHECKING
@@ -45,10 +45,12 @@ class Orchestrator:
 
     def get_graph_methods(self, dag_name: str) -> Iterable[Annotated[Callable, "Class methods generating graphs"]]:
         extract_classes = self.get_registered_classes(dag_name, ClassType.load)
+        methods = []
         for cls in extract_classes:
-            return cls.get_all_graph_methods()
+            methods.append(cls.get_all_graph_methods())
+        return methods
 
-    def get_registered_classes(self, dag_name, class_type: ClassType, only_first=False) -> list[BaseExtract | BaseTransform | BaseLoadGraph] | BaseExtract | BaseTransform | BaseLoadGraph:
+    def get_registered_classes(self, dag_name, class_type: ClassType, only_first=False) -> list[Type[BaseExtract] | Type[BaseTransform] | Type[BaseLoadGraph]] | Type[BaseExtract] | Type[BaseTransform] | Type[BaseLoadGraph]:
         classes = [cls for cls in self.registered_etl_entities.get(dag_name, []) if cls.__base__ is self.type.get(class_type, None)]
         return next(iter(classes)) if only_first else classes
 
