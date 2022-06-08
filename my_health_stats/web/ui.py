@@ -70,17 +70,3 @@ def main_ui():
     logger.debug(graph_methods)
     for graph in load_instance.get_all_graph_methods():
         put_html(load_instance.to_html(graph))
-
-    # height = input("Input your height(cm)：", type=FLOAT)
-    # weight = input("Input your weight(kg)：", type=FLOAT)
-    #
-    # BMI = weight / (height / 100) ** 2
-    #
-    # top_status = [(16, 'Severely underweight'), (18.5, 'Underweight'),
-    #               (25, 'Normal'), (30, 'Overweight'),
-    #               (35, 'Moderately obese'), (float('inf'), 'Severely obese')]
-    #
-    # for top, status in top_status:
-    #     if BMI <= top:
-    #         put_text('Your BMI: %.1f. Category: %s' % (BMI, status))
-    #         break
