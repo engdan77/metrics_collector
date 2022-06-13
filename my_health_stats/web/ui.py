@@ -61,7 +61,7 @@ def main_ui():
     transformer_class = o.get_registered_classes(dag_name, ClassType.transform, only_first=True)
     transformer_instance = transformer_class(*extract_objects)
 
-    # create load/grpah object
+    # create load/graph object
     load_class: Type[BaseLoadGraph] = o.get_registered_classes(dag_name, ClassType.load, only_first=True)
     from_ = input('From date', type='date')
     to_ = input('To date', type='date')
