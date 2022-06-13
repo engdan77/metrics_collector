@@ -46,6 +46,14 @@ class Orchestrator:
                 result[dag_name][cls] = cls.get_parameters()
         return result
 
+    def get_graph_names(self, dag_name: str) -> list[str]:
+        extract_classes = self.get_registered_classes(dag_name, ClassType.load)
+        methods = []
+        for cls in extract_classes:
+            for m in cls.get_all_graph_methods(cls):
+                methods.append(m.__name__)
+        return methods
+
     def get_graph_methods(self, dag_name: str) -> Iterable[Annotated[Callable, "Class methods generating graphs"]]:
         extract_classes = self.get_registered_classes(dag_name, ClassType.load)
         methods = []
