@@ -6,11 +6,13 @@ import asyncio
 from uvicorn_loguru_integration import run_uvicorn_loguru
 from fastapi import FastAPI
 from pywebio.platform.fastapi import asgi_app
-
+from my_health_stats.orchestrator.generic import Orchestrator
 from my_health_stats.scheduler.base import AsyncService
+from my_health_stats.web.rest import graph_router
 from my_health_stats.web.ui import main_ui
 
 app = FastAPI()
+app.include_router(graph_router, prefix='/graph')
 
 
 class WebServer:
@@ -47,6 +49,7 @@ class WebServer:
 
     def start(self):
         self.server.serve()
+
 
 
 if __name__ == "__main__":
