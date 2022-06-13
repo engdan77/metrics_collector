@@ -96,5 +96,3 @@ class BaseTransform(ABC):
     def resample_sum(self, resolution="W"):
         """Resampling resolution"""
         self.df = self.df.resample(resolution).sum()
-
-
