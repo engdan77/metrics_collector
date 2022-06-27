@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass, fields
 from inspect import get_annotations
 
@@ -62,7 +63,8 @@ class BaseExtract(ABC):
         return get_annotations(cls.__init__).get('parameters', None)
 
     def get_cache_file(self):
-        cache_dir = user_data_dir(__package__)
+        """Get cache dir as environment variable CACHE_DIR or app dir"""
+        cache_dir = os.getenv('CACHE_DIR', None) or user_data_dir(__package__)
         Path(cache_dir).mkdir(exist_ok=True)
         return f'{cache_dir}/{self.__class__.__name__}.json'
 
