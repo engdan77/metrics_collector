@@ -38,7 +38,7 @@ class AppleHealthExtract(BaseExtract):
     def parse_records(self):
         with NamedTemporaryFile() as f:
             logger.debug(f'writing zipped apple xml to {f.name}')
-            f.write(self.parameters.uri_loader(self.parameters.apple_uri_health_data))
+            f.write(self.parameters.uri_loader(self.parameters.apple_uri_health_data))  # load data from service
             self.xml = self._extract_xml(f.name)
         logger.debug(f"found xml {int(len(self.xml) / 1000)} KB")
         self.records = self._get_health_data_from_xml(self.xml)
