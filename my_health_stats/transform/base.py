@@ -58,6 +58,7 @@ class BaseTransform(ABC):
         strategy = {_: "first" for _ in self.df.columns}
         self.df = self.df.groupby(self.df.index).agg(strategy)
         self.df.sort_index()
+        assert self.df.size > 0, 'no data in dataframe no graphs can be made'
         if drop_col:
             self.df.drop(drop_col, axis=1, inplace=True)
         return self
