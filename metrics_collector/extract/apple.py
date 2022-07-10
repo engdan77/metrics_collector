@@ -5,8 +5,8 @@ from typing import Callable, Annotated
 from zipfile import ZipFile
 from loguru import logger
 from apple_health import HealthData
-from my_health_stats.extract.base import DaysActivities, BaseExtract, BaseExtractParameters
-from my_health_stats.storage.uriloader import uri_loader
+from metrics_collector.extract.base import DaysActivities, BaseExtract, BaseExtractParameters
+from metrics_collector.storage.uriloader import uri_loader
 
 
 @dataclass

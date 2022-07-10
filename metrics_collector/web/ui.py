@@ -5,13 +5,13 @@ import pywebio.input
 from pywebio.input import input, FLOAT, radio
 from pywebio.output import put_html, put_processbar, set_processbar, put_text, clear
 
-from my_health_stats.extract.base import BaseExtractParameters, BaseExtract
-from my_health_stats.load.base import BaseLoadGraph
-from my_health_stats.orchestrator.generic import Orchestrator, ClassType
+from metrics_collector.extract.base import BaseExtractParameters, BaseExtract
+from metrics_collector.load.base import BaseLoadGraph
+from metrics_collector.orchestrator.generic import Orchestrator, ClassType
 from loguru import logger
-from my_health_stats.utils import get_days_between
+from metrics_collector.utils import get_days_between
 
-from my_health_stats.transform import BaseTransform
+from metrics_collector.transform import BaseTransform
 
 Params = dict[Annotated[str, "param name"], Annotated[str, "value"]]
 

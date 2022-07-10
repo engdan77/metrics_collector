@@ -3,8 +3,8 @@ from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import Callable, Iterable, Annotated
 
-from my_health_stats.orchestrator.generic import register_dag_name
-from my_health_stats.transform.base import BaseTransform
+from metrics_collector.orchestrator.generic import register_dag_name
+from metrics_collector.transform.base import BaseTransform
 
 
 class GraphFormat(str, Enum):

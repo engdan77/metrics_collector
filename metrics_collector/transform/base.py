@@ -6,9 +6,9 @@ import numpy as np
 from loguru import logger
 from collections.abc import Iterable
 from abc import ABC, abstractmethod
-from my_health_stats.extract.base import BaseExtract
+from metrics_collector.extract.base import BaseExtract
 
-from my_health_stats.orchestrator.generic import register_dag_name
+from metrics_collector.orchestrator.generic import register_dag_name
 
 
 class TransformError(Exception):

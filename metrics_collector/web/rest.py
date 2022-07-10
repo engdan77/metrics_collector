@@ -3,7 +3,7 @@ from fastapi_utils.enums import StrEnum
 from loguru import logger
 from makefun import create_function
 from fastapi import APIRouter
-from my_health_stats.orchestrator.generic import Orchestrator
+from metrics_collector.orchestrator.generic import Orchestrator
 
 graph_router = APIRouter()
 o = Orchestrator()

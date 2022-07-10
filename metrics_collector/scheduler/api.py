@@ -8,8 +8,8 @@ import warnings
 from loguru import logger
 
 # Used to overcome "found in sys.modules after import of package .."
-from my_health_stats.helper import import_item
-from my_health_stats.scheduler.base import AsyncService
+from metrics_collector.helper import import_item
+from metrics_collector.scheduler.base import AsyncService
 
 if not sys.warnoptions:  # allow overriding with `-W` option
     warnings.filterwarnings("ignore", category=RuntimeWarning, module="runpy")

@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from typing import Callable, Annotated, Iterable
 
-from my_health_stats.load.base import BaseLoadGraph
+from metrics_collector.load.base import BaseLoadGraph
 
 
 class GarminAppleLoadGraph(BaseLoadGraph):

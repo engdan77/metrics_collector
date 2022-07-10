@@ -2,14 +2,14 @@ from __future__ import annotations  # required to avoid circular imports for typ
 import datetime
 from collections import defaultdict
 from typing import Type, Annotated, Iterable, Callable, Union
-import my_health_stats
+import metrics_collector
 from enum import Enum, auto
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from my_health_stats.extract.base import parameter_dict, BaseExtract  # only when typing
-    from my_health_stats.transform.base import BaseTransform
-    from my_health_stats.load.base import BaseLoadGraph
+    from metrics_collector.extract.base import parameter_dict, BaseExtract  # only when typing
+    from metrics_collector.transform.base import BaseTransform
+    from metrics_collector.load.base import BaseLoadGraph
 
 class ClassType(str, Enum):
     extract = auto()
@@ -31,9 +31,9 @@ class Orchestrator:
     ] = defaultdict(list)
 
     def __init__(self):
-        self.type = {ClassType.extract: my_health_stats.extract.base.BaseExtract,
-                     ClassType.transform: my_health_stats.transform.base.BaseTransform,
-                     ClassType.load: my_health_stats.load.base.BaseLoadGraph}
+        self.type = {ClassType.extract: metrics_collector.extract.base.BaseExtract,
+                     ClassType.transform: metrics_collector.transform.base.BaseTransform,
+                     ClassType.load: metrics_collector.load.base.BaseLoadGraph}
 
     def get_dag_names(self) -> list:
         return list(self.registered_etl_entities.keys())

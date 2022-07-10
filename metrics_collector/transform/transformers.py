@@ -4,9 +4,9 @@ import numpy as np
 import pandas as pd
 import pandera as pa
 
-from my_health_stats.extract.apple import AppleHealthExtract
-from my_health_stats.extract.garmin import GarminExtract
-from my_health_stats.transform.base import BaseTransform, TransformError
+from metrics_collector.extract.apple import AppleHealthExtract
+from metrics_collector.extract.garmin import GarminExtract
+from metrics_collector.transform.base import BaseTransform, TransformError
 
 
 class GarminAppleTransform(BaseTransform):

@@ -12,7 +12,7 @@ import json
 from appdirs import user_data_dir
 from deepmerge import always_merger
 from statistics import mean
-from my_health_stats.orchestrator.generic import register_dag_name
+from metrics_collector.orchestrator.generic import register_dag_name
 
 Number = Union[int, float]
 

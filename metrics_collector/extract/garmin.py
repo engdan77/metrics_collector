@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from garminconnect import Garmin, GarminConnectConnectionError
 from loguru import logger
-from my_health_stats.extract.base import DaysActivities, BaseExtract, BaseExtractParameters
+from metrics_collector.extract.base import DaysActivities, BaseExtract, BaseExtractParameters
 import time
 
 

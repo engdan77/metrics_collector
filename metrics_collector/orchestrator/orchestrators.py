@@ -1,12 +1,12 @@
 import os
 from pathlib import Path
 
-from my_health_stats.extract.apple import AppleHealthExtract
-from my_health_stats.extract.garmin import GarminExtract
-from my_health_stats.load.base import BaseLoadGraph
-from my_health_stats.load.graph import GarminAppleLoadGraph
-from my_health_stats.orchestrator.generic import Orchestrator
-from my_health_stats.transform.transformers import GarminAppleTransform
+from metrics_collector.extract.apple import AppleHealthExtract
+from metrics_collector.extract.garmin import GarminExtract
+from metrics_collector.load.base import BaseLoadGraph
+from metrics_collector.load.graph import GarminAppleLoadGraph
+from metrics_collector.orchestrator.generic import Orchestrator
+from metrics_collector.transform.transformers import GarminAppleTransform
 from typing import Type
 
 

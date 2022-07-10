@@ -2,11 +2,11 @@ import os
 import sys
 from pathlib import Path
 import datetime
-from my_health_stats.extract.apple import AppleHealthExtract, AppleHealthExtractParameters
-from my_health_stats.extract.garmin import GarminExtract, GarminExtractParameters
-from my_health_stats.utils import get_past_days
-from my_health_stats.transform.transformers import GarminAppleTransform
-from my_health_stats.load.graph import GarminAppleLoadGraph
+from metrics_collector.extract.apple import AppleHealthExtract, AppleHealthExtractParameters
+from metrics_collector.extract.garmin import GarminExtract, GarminExtractParameters
+from metrics_collector.utils import get_past_days
+from metrics_collector.transform.transformers import GarminAppleTransform
+from metrics_collector.load.graph import GarminAppleLoadGraph
 from scheduler import MyScheduler
 from scheduler.tasks import default_initial_scheduled_tasks
 from web.service import WebServer
