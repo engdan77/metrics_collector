@@ -53,7 +53,7 @@ def main_ui():
     # request params as dict from ui
     extract_params = {}
     for args_def in o.get_extract_args_def(dag_name):
-        args_ = ui_get_params(args_def)
+        args_ = ui_get_params(args_def)  # This could in theory be changed with a different method
         extract_params.update(args_)
     extract_objects = o.get_extract_objects(dag_name, extract_params)
 
@@ -66,19 +66,17 @@ def main_ui():
         for idx_date, date in enumerate(dates):
             current_count = idx_date * idx_extract
             logger.info(f'downloading {current_count}/{tot} [{extract_object}]')
-            extract_object.get_data(date)
+            extract_object.get_data(date)  # This could also be changed to different context
             set_processbar('download_bar', current_count / tot)
     set_processbar('download_bar', 1)
     put_text('Massaging data and rendering charts')
 
-    # create transform object
-    transformer_class = o.get_registered_classes(dag_name, ClassType.transform, only_first=True)
-    transformer_instance = transformer_class(*extract_objects)
+    transform_object = o.get_transform_object(dag_name, extract_objects)  # Important to be used next step
 
     # create load/graph object
     load_class: Type[BaseLoadGraph] = o.get_registered_classes(dag_name, ClassType.load, only_first=True)
 
-    load_instance = load_class(transformer_instance, from_, to_)
+    load_instance = load_class(transform_object, from_, to_)
     graph_methods = load_instance.get_all_graph_methods()
     logger.debug(graph_methods)
     clear()
