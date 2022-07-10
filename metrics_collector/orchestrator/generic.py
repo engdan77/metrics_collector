@@ -1,11 +1,14 @@
 from __future__ import annotations  # required to avoid circular imports for typing purposes
 import datetime
+from abc import ABC, abstractmethod
 from collections import defaultdict
-from typing import Type, Annotated, Iterable, Callable, Union, Generator, Any
+from typing import Type, Annotated, Iterable, Callable, Union, Generator, Any, Protocol
 import metrics_collector
 from enum import Enum, auto
 from typing import TYPE_CHECKING
 from loguru import logger
+
+from metrics_collector.utils import get_days_between
 
 if TYPE_CHECKING:
     from metrics_collector.extract.base import parameter_dict, BaseExtract, BaseExtractParameters  # only when typing
@@ -17,6 +20,17 @@ class ClassType(str, Enum):
     extract = auto()
     transform = auto()
     load = auto()
+
+
+class ProgressBar(ABC):
+    @abstractmethod
+    def __init__(self):
+        """Instantiate a progressbar"""
+
+    @abstractmethod
+    def update(self, progress: Annotated[float, "Between 0 and 1"]) -> None:
+        """Updates its status"""
+        ...
 
 
 Params = dict[Annotated[str, "param name"], Annotated[str, "value"]]
@@ -109,3 +123,13 @@ class Orchestrator:
         for graph in load_instance.get_all_graph_methods():
             yield getattr(load_instance, f'to_{format}')(graph)
 
+    def process_dates(self, extract_objects, from_, to_, progress_bar: ProgressBar | None):
+        dates = list(get_days_between(from_, to_))
+        tot = len(list(dates)) * len(extract_objects)
+        for idx_extract, extract_object in enumerate(extract_objects, start=1):
+            for idx_date, date in enumerate(dates):
+                current_count = idx_date * idx_extract
+                logger.info(f'downloading {current_count}/{tot} [{extract_object}]')
+                extract_object.get_data(date)  # This could also be changed to different context
+                if progress_bar:
+                    progress_bar.update(current_count / tot)
