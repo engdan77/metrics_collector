@@ -3,12 +3,13 @@ from typing import Iterable, Type, Annotated
 
 import pywebio.input
 from pywebio.input import input, FLOAT, radio
-from pywebio.output import put_html
+from pywebio.output import put_html, put_processbar, set_processbar, put_text, clear
 
 from my_health_stats.extract.base import BaseExtractParameters, BaseExtract
 from my_health_stats.load.base import BaseLoadGraph
 from my_health_stats.orchestrator.generic import Orchestrator, ClassType
 from loguru import logger
+from my_health_stats.utils import get_days_between
 
 from my_health_stats.transform import BaseTransform
 
@@ -45,6 +46,9 @@ def main_ui():
     logger.debug(args)
     dag_name = space_shifter(radio("Chose what to extract", options=[space_shifter(str(arg)) for arg in args.keys()]))
     logger.debug(f'{dag_name=}')
+    from_ = input('From date', type='date')
+    to_ = input('To date', type='date')
+
 
     # create extract objects
     extract_classes = o.get_registered_classes(dag_name, ClassType.extract)
@@ -57,16 +61,30 @@ def main_ui():
         extract_object = extract_class(p)  # add args
         extract_objects.append(extract_object)
 
+    # TODO: get_data for all extract objects
+    dates = list(get_days_between(from_, to_))
+    tot = len(list(dates)) * len(extract_objects)
+    put_text('Processing data from services')
+    put_processbar('download_bar')
+    for idx_extract, extract_object in enumerate(extract_objects, start=1):
+        for idx_date, date in enumerate(dates):
+            current_count = idx_date * idx_extract
+            logger.info(f'downloading {current_count}/{tot} [{extract_object}]')
+            extract_object.get_data(date)
+            set_processbar('download_bar', current_count / tot)
+    set_processbar('download_bar', 1)
+    put_text('Massaging data and rendering charts')
+
     # create transform object
     transformer_class = o.get_registered_classes(dag_name, ClassType.transform, only_first=True)
     transformer_instance = transformer_class(*extract_objects)
 
     # create load/graph object
     load_class: Type[BaseLoadGraph] = o.get_registered_classes(dag_name, ClassType.load, only_first=True)
-    from_ = input('From date', type='date')
-    to_ = input('To date', type='date')
+
     load_instance = load_class(transformer_instance, from_, to_)
     graph_methods = load_instance.get_all_graph_methods()
     logger.debug(graph_methods)
+    clear()
     for graph in load_instance.get_all_graph_methods():
         put_html(load_instance.to_html(graph))
