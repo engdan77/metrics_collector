@@ -5,16 +5,21 @@ from typing import Type, Annotated, Iterable, Callable, Union
 import metrics_collector
 from enum import Enum, auto
 from typing import TYPE_CHECKING
+from loguru import logger
 
 if TYPE_CHECKING:
-    from metrics_collector.extract.base import parameter_dict, BaseExtract  # only when typing
+    from metrics_collector.extract.base import parameter_dict, BaseExtract, BaseExtractParameters  # only when typing
     from metrics_collector.transform.base import BaseTransform
     from metrics_collector.load.base import BaseLoadGraph
+
 
 class ClassType(str, Enum):
     extract = auto()
     transform = auto()
     load = auto()
+
+
+Params = dict[Annotated[str, "param name"], Annotated[str, "value"]]
 
 
 def register_dag_name(cls):
@@ -64,6 +69,34 @@ class Orchestrator:
     def get_registered_classes(self, dag_name, class_type: ClassType, only_first=False) -> list[Type[BaseExtract] | Type[BaseTransform] | Type[BaseLoadGraph]] | Type[BaseExtract] | Type[BaseTransform] | Type[BaseLoadGraph]:
         classes = [cls for cls in self.registered_etl_entities.get(dag_name, []) if cls.__base__ is self.type.get(class_type, None)]
         return next(iter(classes)) if only_first else classes
+
+    @staticmethod
+    def dict_to_extract_params_object(params: Params, extract_class: BaseExtract) -> BaseExtractParameters:
+        cls = extract_class.get_extract_parameter_class()
+        declare_params = [k for k, v in cls.__dataclass_fields__.items() if v.init]
+        # only pass params that are valid for the class
+        obj = cls(**{key: params[key] for key in declare_params})
+        return obj
+
+    def get_extract_args_def(self, dag_name):
+        """Used to e.g. pass to UI to request params from use"""
+        args = self.get_extract_parameters()
+        extract_classes = self.get_registered_classes(dag_name, ClassType.extract)
+        for extract_class in extract_classes:
+            yield args[dag_name][extract_class]
+
+    def get_extract_objects(self, dag_name, extract_params: dict):
+        # create extract objects
+        args = self.get_extract_parameters()
+        extract_classes = self.get_registered_classes(dag_name, ClassType.extract)
+        extract_objects = []
+        for extract_class in extract_classes:
+            extract_args = args[dag_name][extract_class]
+            logger.debug(f"get arguments for {extract_class=} which is {extract_args}")
+            p = self.dict_to_extract_params_object(extract_params, extract_class)
+            extract_object = extract_class(p)  # add args
+            extract_objects.append(extract_object)
+        return extract_objects
 
     def run_dag(self, dag_name):
         ...
