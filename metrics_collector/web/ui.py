@@ -69,6 +69,3 @@ def main_ui():
     clear()
     for graph_data in o.get_all_graphs(from_, to_, dag_name, transform_object, 'html'):  # Used to get graph results
         put_html(graph_data)
-
-
-
