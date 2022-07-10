@@ -1,3 +1,4 @@
+import datetime
 import os
 from dataclasses import dataclass, fields
 from inspect import get_annotations
@@ -101,8 +102,10 @@ class BaseExtract(ABC):
         else:
             return {date_: j[date_]} if date_ in j else None
 
-    def get_data(self, date_: str) -> DaysActivities:
+    def get_data(self, date_: str | datetime.date) -> DaysActivities:
         """This is the main method supposed to be used"""
+        if date_ is datetime.date:
+            date_ = date_.strftime('%Y-%m-%d')
         cache_file = self.get_cache_file()
         logger.debug(f'attempt get cache data from {cache_file}')
         if (j := self.from_json(cache_file, date_)) is not None:
