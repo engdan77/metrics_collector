@@ -43,7 +43,7 @@ def main_ui():
     o = Orchestrator()
 
     # get which dag
-    args = o.get_extract_parameters()
+    args = o.get_extract_services_and_parameters()  # Used to get which services are registered
     logger.debug(args)
     dag_name = space_shifter(radio("Chose what to extract", options=[space_shifter(str(arg)) for arg in args.keys()]))
     logger.debug(f'{dag_name=}')
