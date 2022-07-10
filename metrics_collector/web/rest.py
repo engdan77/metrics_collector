@@ -18,7 +18,7 @@ def graph(**args):
 
 # Some magic to dynamically create API endpoints
 for dag_name in o.get_dag_names():
-    dag_args = o.get_extract_parameters().get(dag_name)
+    dag_args = o.get_extract_services_and_parameters().get(dag_name)
     all_args = []
 
     graph_names = o.get_graph_names(dag_name)  # get all graph names options
