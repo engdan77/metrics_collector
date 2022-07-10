@@ -1,7 +1,7 @@
 from __future__ import annotations  # required to avoid circular imports for typing purposes
 import datetime
 from collections import defaultdict
-from typing import Type, Annotated, Iterable, Callable, Union
+from typing import Type, Annotated, Iterable, Callable, Union, Generator, Any
 import metrics_collector
 from enum import Enum, auto
 from typing import TYPE_CHECKING
@@ -105,6 +105,13 @@ class Orchestrator:
         transformer_class = self.get_registered_classes(dag_name, ClassType.transform, only_first=True)
         transformer_object = transformer_class(*extract_objects)
         return transformer_object
+
+    def get_all_graphs(self, from_: datetime.date | str, to_: datetime.date | str, dag_name: str, transform_object: BaseTransform, format: Annotated[str, "Type such as `html` or `png`"] = 'html') -> Generator[Any, None, None]:
+        """Main entrypoint for getting all graph objects with methods such as .to_htm() or .to_png()"""
+        load_class: Type[BaseLoadGraph] = self.get_registered_classes(dag_name, ClassType.load, only_first=True)
+        load_instance = load_class(transform_object, from_, to_)
+        for graph in load_instance.get_all_graph_methods():
+            yield getattr(load_instance, f'to_{format}')(graph)
 
 
     def run_dag(self, dag_name):
