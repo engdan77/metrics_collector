@@ -1,10 +1,9 @@
+"""Module for dynamically create a REST API based on classes registered"""
 from fastapi_utils.enums import StrEnum
 from loguru import logger
 from makefun import create_function
 from fastapi import APIRouter
 from my_health_stats.orchestrator.generic import Orchestrator
-import datetime
-from typing import Union, Optional
 
 graph_router = APIRouter()
 o = Orchestrator()
