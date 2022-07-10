@@ -73,12 +73,6 @@ def main_ui():
 
     transform_object = o.get_transform_object(dag_name, extract_objects)  # Important to be used next step
 
-    # create load/graph object
-    load_class: Type[BaseLoadGraph] = o.get_registered_classes(dag_name, ClassType.load, only_first=True)
-
-    load_instance = load_class(transform_object, from_, to_)
-    graph_methods = load_instance.get_all_graph_methods()
-    logger.debug(graph_methods)
     clear()
-    for graph in load_instance.get_all_graph_methods():
-        put_html(load_instance.to_html(graph))
+    for graph_data in o.get_all_graphs(from_, to_, dag_name, transform_object, 'html'):  # Used to get graph results
+        put_html(graph_data)
