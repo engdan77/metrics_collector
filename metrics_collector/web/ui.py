@@ -15,6 +15,7 @@ from metrics_collector.transform import BaseTransform
 
 Params = dict[Annotated[str, "param name"], Annotated[str, "value"]]
 
+
 def space_shifter(text: str) -> str:
     if '_' in text:
         return text.replace('_', ' ').capitalize()
@@ -32,10 +33,10 @@ def ui_get_params(param_defintion: dict[Annotated[str, "parm name"], Type]) -> P
     return args
 
 
-def dict_to_extract_params_object(params: Params, extract_class: BaseExtract) -> BaseExtractParameters:
-    cls = extract_class.get_extract_parameter_class()
-    obj = cls(**params)
-    return obj
+# def dict_to_extract_params_object(params: Params, extract_class: BaseExtract) -> BaseExtractParameters:
+#     cls = extract_class.get_extract_parameter_class()
+#     obj = cls(**params)
+#     return obj
 
 
 def main_ui():
@@ -49,17 +50,12 @@ def main_ui():
     from_ = input('From date', type='date')
     to_ = input('To date', type='date')
 
-
-    # create extract objects
-    extract_classes = o.get_registered_classes(dag_name, ClassType.extract)
-    extract_objects = []
-    for extract_class in extract_classes:
-        extract_args = args[dag_name][extract_class]
-        logger.debug(f"get arguments for {extract_class=} which is {extract_args}")
-        a = ui_get_params(extract_args)
-        p = dict_to_extract_params_object(a, extract_class)
-        extract_object = extract_class(p)  # add args
-        extract_objects.append(extract_object)
+    # request params as dict from ui
+    extract_params = {}
+    for args_def in o.get_extract_args_def(dag_name):
+        args_ = ui_get_params(args_def)
+        extract_params.update(args_)
+    extract_objects = o.get_extract_objects(dag_name, extract_params)
 
     # TODO: get_data for all extract objects
     dates = list(get_days_between(from_, to_))
