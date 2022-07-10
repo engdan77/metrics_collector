@@ -61,7 +61,7 @@ def main_ui():
     put_text('Processing data from services')
     pb = WebProgressBar()
     o.process_dates(extract_objects, from_, to_, progress_bar=pb)
-    set_processbar('download_bar', 1)
+    set_processbar('download_bar', 1)   # To assure it shows 100%
     put_text('Massaging data and rendering charts')
 
     transform_object = o.get_transform_object(dag_name, extract_objects)  # Important to be used next step
