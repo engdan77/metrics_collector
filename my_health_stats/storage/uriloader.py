@@ -5,7 +5,7 @@ import fs
 from furl import furl
 
 
-def uri_loader(uri_string) -> bytes:
+def uri_loader(_, uri_string) -> bytes:  # discard 1st arg being self
     uri_parts = furl(uri_string)
     p = uri_parts.pathstr
     dirname = os.path.dirname(p)
@@ -18,5 +18,5 @@ def uri_loader(uri_string) -> bytes:
 if __name__ == '__main__':
     access_token = os.getenv('DROPBOX_ACCESS_TOKEN')
     file_path = os.getenv('FILEPATH')
-    u = UriLoader(f'dropbox://dropbox.com{file_path}?access_token={access_token}')
-    print(len(u.get_bytes()))
+    u = uri_loader(None, f'dropbox://dropbox.com{file_path}?access_token={access_token}')
+    print(len(u))
