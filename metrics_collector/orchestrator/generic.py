@@ -86,6 +86,7 @@ class Orchestrator:
             yield args[dag_name][extract_class]
 
     def get_extract_objects(self, dag_name, extract_params: dict):
+        """Main entrypoint for getting extract objects used to get transformer object"""
         # create extract objects
         args = self.get_extract_parameters()
         extract_classes = self.get_registered_classes(dag_name, ClassType.extract)
@@ -97,6 +98,14 @@ class Orchestrator:
             extract_object = extract_class(p)  # add args
             extract_objects.append(extract_object)
         return extract_objects
+
+    def get_transform_object(self, dag_name: str, extract_objects: list) -> BaseTransform:
+        """Main entrypoint for getting transform object used to load graph from"""
+        # create transform object
+        transformer_class = self.get_registered_classes(dag_name, ClassType.transform, only_first=True)
+        transformer_object = transformer_class(*extract_objects)
+        return transformer_object
+
 
     def run_dag(self, dag_name):
         ...
