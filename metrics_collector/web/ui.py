@@ -1,6 +1,7 @@
+import itertools
 from typing import Iterable, Type, Annotated, Protocol
 import pywebio.input
-from pywebio.input import input, FLOAT, radio
+from pywebio.input import input, FLOAT, radio, select
 from pywebio.output import put_html, put_processbar, set_processbar, put_text, clear
 from metrics_collector.orchestrator.generic import Orchestrator, ClassType, ProgressBar
 from loguru import logger
@@ -46,17 +47,36 @@ def ui_get_service_and_interval(o):
     return dag_name, from_, to_
 
 
+def ui_get_extract_params(dag_name, orchestrator):
+    # request params as dict from ui
+    extract_params = {}
+    for args_def in orchestrator.get_extract_params_def(dag_name):
+        args_ = ui_get_params(args_def)  # This could in theory be changed with a different method
+        extract_params.update(args_)
+    return extract_params
+
+
+def get_extract_params(dag_name, orchestrator):
+    required_params = set(itertools.chain.from_iterable([_.keys() for _ in orchestrator.get_extract_params_def(dag_name)]))
+    extract_params = orchestrator.get_stored_params(dag_name)
+    if not set(extract_params.keys()) == required_params:
+        extract_params = ui_get_extract_params(dag_name, orchestrator)
+    else:
+        for k, v in extract_params.items():
+            put_text(f'{k}: {v}')
+        if not {'Yes': True, 'No': False}.get(select(f'Would you like to use these existing params?', ['Yes', 'No']),
+                                              None):
+            extract_params = ui_get_extract_params(dag_name, orchestrator)
+    return extract_params
+
+
 def main_ui():
     o = Orchestrator()
 
     dag_name, from_, to_ = ui_get_service_and_interval(o)
 
-    # request params as dict from ui
-    extract_params = {}
-    for args_def in o.get_extract_args_def(dag_name):
-        args_ = ui_get_params(args_def)  # This could in theory be changed with a different method
-        extract_params.update(args_)
-    extract_objects = o.get_extract_objects(dag_name, extract_params)
+    extract_params = get_extract_params(dag_name, o)  # determine if params already stored
+    extract_objects = o.get_extract_objects(dag_name, extract_params)  # required with extract_params as dict
 
     put_text('Processing data from services')
     pb = WebProgressBar()
