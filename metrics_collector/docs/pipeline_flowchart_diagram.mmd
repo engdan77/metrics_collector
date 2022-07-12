@@ -3,21 +3,21 @@ flowchart
 subgraph High Level Design
     direction BT
     subgraph BP["Orchestrator"]
-        et["Orchestrator()\n+get_extract_parameters()"]
+        et["Orchestrator()\n+get_extract_params_def(dag_name)\n+get_extract_objects(dag_name, extract_params)\n+process_dates(extract_objects, from_, to_, progress_bar=pb)\n+get_transform_object(dag_name, extract_objects)\n+get_all_graphs(from_, to_, dag_name, transform_object, 'html')\n"]
     end
         subgraph ETL
             direction LR
                 subgraph Extract
                 direction BT
-                    gd["@abstract\n+get_data_from_service()"] --> BE["BaseExtract()"]
+                    gd["@abstract\n+dag_name\n+get_data_from_service()"] --> BE["BaseExtract()"]
                 end
                 subgraph Transform
                 direction BT
-                    pp["@abstract\n+process_pipeline(from, to)\n+input_schema"] --> BT["BaseTransform()"]
+                    pp["@abstract\n+dag_name\n+process_pipeline(from, to)\n+input_schema"] --> BT["BaseTransform()"]
                 end
                 subgraph Load
                 direction BT
-                    ga["@abstract\n+get_all_graph_methods(graph_format)\n+to_html()\n+to_png()"] --> BL["BaseLoadGaph()"]
+                    ga["@abstract\n+dag_name\nget_all_graph_methods(graph_format)\n+to_html()\n+to_png()"] --> BL["BaseLoadGaph()"]
                 end
             end
         subgraph FE["Web/REST"]
