@@ -1,5 +1,6 @@
 import datetime
 import os
+import shelve
 from dataclasses import dataclass, fields
 from inspect import get_annotations
 
@@ -39,7 +40,8 @@ class BaseExtract(ABC):
                              'min': min,
                              'mean': mean,
                              'sum': sum}
-
+    cache_dir = os.getenv('CACHE_DIR', None) or user_data_dir(__package__)
+    params_file = f'{cache_dir}/params'
     dag_name: str | Iterable = NotImplemented
 
     @abstractmethod
@@ -65,9 +67,25 @@ class BaseExtract(ABC):
 
     def get_cache_file(self):
         """Get cache dir as environment variable CACHE_DIR or app dir"""
-        cache_dir = os.getenv('CACHE_DIR', None) or user_data_dir(__package__)
-        Path(cache_dir).mkdir(exist_ok=True)
-        return f'{cache_dir}/{self.__class__.__name__}.json'
+        Path(self.cache_dir).mkdir(exist_ok=True)
+        return f'{self.cache_dir}/{self.__class__.__name__}.json'
+
+    @classmethod
+    def store_params(cls, params: dict):
+        Path(cls.cache_dir).mkdir(exist_ok=True)
+        with shelve.open(cls.params_file) as f:
+            current = f.get(cls.dag_name, {})
+            current.update(params)
+            f[cls.dag_name] = current
+
+    @classmethod
+    def get_stored_params(cls):
+        """Get previous parameters used for future usage"""
+        p = {}
+        try:
+            p = shelve.open(cls.params_file)
+        finally:
+            return p.get(cls.dag_name, {})
 
     @abstractmethod
     def get_data_from_service(self, date_: str) -> DaysActivities:
@@ -107,6 +125,7 @@ class BaseExtract(ABC):
         if date_ is datetime.date:
             date_ = date_.strftime('%Y-%m-%d')
         cache_file = self.get_cache_file()
+        self.__class__.store_params(self.parameters.__dict__)  # save last working params
         logger.debug(f'attempt get cache data from {cache_file}')
         if (j := self.from_json(cache_file, date_)) is not None:
             return j
