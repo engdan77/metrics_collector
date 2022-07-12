@@ -88,7 +88,15 @@ class Orchestrator:
         obj = cls(**{key: params[key] for key in declare_params})
         return obj
 
-    def get_extract_args_def(self, dag_name):
+    def get_stored_params(self, dag_name) -> dict:
+        """Used to retrieve existing params for usage"""
+        r = {}
+        extract_classes = self._get_registered_classes(dag_name, ClassType.extract)
+        for extract_class in extract_classes:
+            r.update(extract_class.get_stored_params().items())  # update r with all existing params
+        return r
+
+    def get_extract_params_def(self, dag_name):
         """Used to e.g. pass to UI to request params from use"""
         args = self.get_extract_services_and_parameters()
         extract_classes = self._get_registered_classes(dag_name, ClassType.extract)
