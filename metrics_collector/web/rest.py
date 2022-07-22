@@ -23,13 +23,14 @@ def rest_get_extract_params(query_params, dag_name, orchestrator):
 
 
 def graph(**args):
+    media_type = "image/png"  # Possibly add other options in future to allow other media types
     logger.debug(f'{args=}')
     dag_name = args['request'].scope['path'].split('/').pop()
     logger.debug(f'{dag_name=}')
     any_params_none = any([_ is None for _ in args.values()])
     from_ = args['from_date']
     to_ = args['to_date']
-    graph_name = args['graph']  # TODO: check name got
+    graph_name = args['graph']
 
     required_params = set(itertools.chain.from_iterable([_.keys() for _ in o.get_extract_params_def(dag_name)]))
     extract_params = o.get_stored_params(dag_name)
@@ -46,7 +47,7 @@ def graph(**args):
     transform_object = o.get_transform_object(dag_name, extract_objects)  # Important to be used next step
     logger.debug('processing and rendering graph')
     graph_result = o.get_graph(graph_name, from_, to_, dag_name, transform_object, 'png')
-    return Response(content=graph_result, media_type="image/png")
+    return Response(content=graph_result, media_type=media_type)
 
 
 # Some magic to dynamically create API endpoints
