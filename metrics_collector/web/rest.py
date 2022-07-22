@@ -2,6 +2,7 @@
 import itertools
 
 from fastapi_utils.enums import StrEnum
+from fastapi import Response
 from loguru import logger
 from makefun import create_function
 from fastapi import APIRouter, Request, HTTPException
@@ -45,7 +46,7 @@ def graph(**args):
     transform_object = o.get_transform_object(dag_name, extract_objects)  # Important to be used next step
     logger.debug('processing and rendering graph')
     graph_result = o.get_graph(graph_name, from_, to_, dag_name, transform_object, 'png')
-    return {'foo': 'bar'}
+    return Response(content=graph_result, media_type="image/png")
 
 
 # Some magic to dynamically create API endpoints
