@@ -79,9 +79,11 @@ class Orchestrator:
         return methods
 
     def _get_registered_classes(self, dag_name, class_type: ClassType, only_first=False) -> list[Type[BaseExtract] | Type[BaseTransform] | Type[BaseLoadGraph]] | Type[BaseExtract] | Type[BaseTransform] | Type[BaseLoadGraph]:
-        logger.debug(f'{__name__=}')
+        logger.debug(f'starting {__name__=}')
         classes = [cls for cls in self.registered_etl_entities.get(dag_name, []) if cls.__base__ is self.type.get(class_type, None)]
-        return next(iter(classes)) if only_first else classes
+        logger.debug('done get classes')
+        result = next(iter(classes), None) if only_first else classes
+        return result
 
     @staticmethod
     def _dict_to_extract_params_object(params: Params, extract_class: BaseExtract) -> BaseExtractParameters:
@@ -137,6 +139,7 @@ class Orchestrator:
     def get_graph(self, graph_name: str, from_: datetime.date | str, to_: datetime.date | str, dag_name: str, transform_object: BaseTransform, format_: Annotated[str, "Type such as `html` or `png`"] = 'html') -> Any:
         """Main entrypoint for getting all graph objects with methods such as .to_htm() or .to_png()"""
         load_class: Type[BaseLoadGraph] = self._get_registered_classes(dag_name, ClassType.load, only_first=True)
+        logger.debug('done get registered classes')
         logger.debug(f'{load_class=}')
         load_instance = load_class(transform_object, from_, to_)
         logger.debug(f'{load_instance=}')

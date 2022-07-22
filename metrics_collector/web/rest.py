@@ -28,10 +28,11 @@ def graph(**args):
     any_params_none = any([_ is None for _ in args.values()])
     from_ = args['from_date']
     to_ = args['to_date']
+    graph_name = args['graph']  # TODO: check name got
 
     required_params = set(itertools.chain.from_iterable([_.keys() for _ in o.get_extract_params_def(dag_name)]))
     extract_params = o.get_stored_params(dag_name)
-    if not any_params_none and set(extract_params.keys()) == required_params:
+    if any_params_none and set(extract_params.keys()) == required_params:
         extract_params = o.get_stored_params(dag_name)
     elif any_params_none:
         return HTTPException(400, 'missing parameters')
@@ -43,7 +44,7 @@ def graph(**args):
     logger.debug('completed processing dates')
     transform_object = o.get_transform_object(dag_name, extract_objects)  # Important to be used next step
     logger.debug('processing and rendering graph')
-    graph_result = o.get_graph(from_, to_, dag_name, transform_object, 'png')
+    graph_result = o.get_graph(graph_name, from_, to_, dag_name, transform_object, 'png')
     return {'foo': 'bar'}
 
 
