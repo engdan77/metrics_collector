@@ -25,7 +25,7 @@ def rest_get_extract_params(query_params, dag_name, orchestrator):
 
 
 def graph(**args):
-    media_type = "image/png"  # Possibly add other options in future to allow other media types
+    media_type = mimetypes.types_map[f'.{args["format"]}']
     logger.debug(f'{args=}')
     dag_name = args['request'].scope['path'].split('/').pop()
     logger.debug(f'{dag_name=}')
@@ -48,7 +48,7 @@ def graph(**args):
     logger.debug('completed processing dates')
     transform_object = o.get_transform_object(dag_name, extract_objects)  # Important to be used next step
     logger.debug('processing and rendering graph')
-    graph_result = o.get_graph(graph_name, from_, to_, dag_name, transform_object, 'png')
+    graph_result = o.get_graph(graph_name, from_, to_, dag_name, transform_object, args['format'])
     return Response(content=graph_result, media_type=media_type)
 
 
