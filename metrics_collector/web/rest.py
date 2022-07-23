@@ -7,6 +7,8 @@ from loguru import logger
 from makefun import create_function
 from fastapi import APIRouter, Request, HTTPException
 from metrics_collector.orchestrator.generic import Orchestrator
+import mimetypes
+from metrics_collector.load import GraphFormat
 import datetime
 
 graph_router = APIRouter()
@@ -58,6 +60,7 @@ for dag_name in o.get_dag_names():
     graph_names = o.get_graph_names(dag_name)  # get all graph names options
     GraphEnum = StrEnum('GraphEnum', graph_names)
     all_args.append(f'graph: GraphEnum')
+    all_args.append('format: GraphFormat')
 
     for arg_name, default_date in (('from_date', 'today() - datetime.timedelta(days=1)'), ('to_date', 'today()')):
         all_args.append(f'{arg_name}: datetime.date = datetime.date.{default_date}')

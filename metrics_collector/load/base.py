@@ -5,9 +5,11 @@ from typing import Callable, Iterable, Annotated
 
 from metrics_collector.orchestrator.generic import register_dag_name
 from metrics_collector.transform.base import BaseTransform
+from fastapi_utils.enums import StrEnum
 
 
-class GraphFormat(str, Enum):
+class GraphFormat(StrEnum):
+    """Different formats to be returned and shall be kept standard extension to allow mime-type conversion"""
     html = auto()
     png = auto()
 
