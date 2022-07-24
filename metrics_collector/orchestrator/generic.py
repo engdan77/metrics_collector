@@ -46,7 +46,19 @@ def register_dag_name(cls):
 
 
 class Orchestrator:
-    """Orchestrator acting as proxy for the ETL processes"""
+    """Orchestrator acting as proxy for the ETL processes
+
+    Example:
+        o = Orchestrator()  # instantiate orchestrator
+        dag_name, from_, to_ = custom_method_get_required_parameters()  # get params
+        extract_params = o.get_stored_params(dag_name)  # OPTIONAL: method allow get previous cached data
+        extract_objects = o.get_extract_objects(dag_name, extract_params)  # required with extract_params as dict
+        pb = my_progress_bar()  # OPTIONAL: callback function presenting progress between 0.0 to 1.0
+        o.process_dates(extract_objects, from_, to_, progress_bar=pb)  # processing those dates
+        transform_object = o.get_transform_object(dag_name, extract_objects)  # Important to be used next step
+        for graph_data in o.get_all_graphs(from_, to_, dag_name, transform_object, 'png'):  # Used to get graph results
+            do_something_with_graph_data(graph_data)  # custom handler for handling e.g. png or html
+    """
 
     registered_etl_entities: defaultdict[
         Annotated[str, "dag name"], list[Annotated[Type, "classes"]]
@@ -148,7 +160,10 @@ class Orchestrator:
             if graph.__name__ == graph_name:
                 return getattr(load_instance, f'to_{format_}')(graph)
 
-    def process_dates(self, extract_objects, from_, to_, progress_bar: ProgressBar | None = None):
+    @staticmethod
+    def process_dates(extract_objects, from_, to_, progress_bar: ProgressBar | None = None):
+        """Method of assure data retrieved from service for the period given"""
+        # TODO: add decorator for caching data
         dates = list(get_days_between(from_, to_))
         tot = len(list(dates)) * len(extract_objects)
         for idx_extract, extract_object in enumerate(extract_objects, start=1):
