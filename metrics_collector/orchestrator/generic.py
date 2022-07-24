@@ -50,13 +50,15 @@ class Orchestrator:
 
     Example:
         o = Orchestrator()  # instantiate orchestrator
-        dag_name, from_, to_ = custom_method_get_required_parameters()  # get params
+        dag_name, from_, to_ = ('garmin_and_apple', '2022-03-01', '2022-03-10')  # get dag_name and period
+        extract_params_definition = o.get_extract_params_def(dag_name)  # OPTIONAL: dynamically get required parameters
+        extract_params = {'apple_uri_health_data': 'ftp://foo:bar@127.0.0.1:10021/export.zip', 'garmin_username': 'foo', 'garmin_password': 'bar'}  # required extract params based on abstract class registered for dag_name
         extract_params = o.get_stored_params(dag_name)  # OPTIONAL: method allow get previous cached data
-        extract_objects = o.get_extract_objects(dag_name, extract_params)  # required with extract_params as dict
+        extract_objects = o.get_extract_objects(dag_name, extract_params)  # EXTRACT: required with extract_params as dict
         pb = my_progress_bar()  # OPTIONAL: callback function presenting progress between 0.0 to 1.0
         o.process_dates(extract_objects, from_, to_, progress_bar=pb)  # processing those dates
-        transform_object = o.get_transform_object(dag_name, extract_objects)  # Important to be used next step
-        for graph_data in o.get_all_graphs(from_, to_, dag_name, transform_object, 'png'):  # Used to get graph results
+        transform_object = o.get_transform_object(dag_name, extract_objects)  # TRANSFORM: important to be used next step
+        for graph_data in o.get_all_graphs(from_, to_, dag_name, transform_object, 'png'):  # LOAD: used to get graph results
             do_something_with_graph_data(graph_data)  # custom handler for handling e.g. png or html
     """
 
