@@ -11,6 +11,8 @@ import mimetypes
 from metrics_collector.load import GraphFormat
 import datetime
 
+from metrics_collector.utils import normalize_period
+
 graph_router = APIRouter()
 o = Orchestrator()
 DagName = StrEnum('DagName', o.get_dag_names())
@@ -25,6 +27,7 @@ def rest_get_extract_params(query_params, dag_name, orchestrator):
 
 
 def graph(**args):
+    """Accepts arguments by dynamically generated parameters and generates graph data"""
     media_type = mimetypes.types_map[f'.{args["format"]}']
     logger.debug(f'{args=}')
     dag_name = args['request'].scope['path'].split('/').pop()
@@ -48,6 +51,7 @@ def graph(**args):
     logger.debug('completed processing dates')
     transform_object = o.get_transform_object(dag_name, extract_objects)  # Important to be used next step
     logger.debug('processing and rendering graph')
+    from_, to_ = normalize_period(from_, to_)
     graph_result = o.get_graph(graph_name, from_, to_, dag_name, transform_object, args['format'])
     return Response(content=graph_result, media_type=media_type)
 
@@ -63,7 +67,7 @@ for dag_name in o.get_dag_names():
     all_args.append('format: GraphFormat')
 
     for arg_name, default_date in (('from_date', 'today() - datetime.timedelta(days=1)'), ('to_date', 'today()')):
-        all_args.append(f'{arg_name}: datetime.date = datetime.date.{default_date}')
+        all_args.append(f'{arg_name}: datetime.date | str = datetime.date.{default_date}')
 
     for cls, args in dag_args.items():  # add args for extract class
         for arg, type_ in args.items():
