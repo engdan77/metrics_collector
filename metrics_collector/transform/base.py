@@ -34,7 +34,7 @@ class BaseTransform(ABC):
         register_dag_name(cls)
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.df!r})"
+        return f"{self.__class__.__name__}()"
 
     def __str__(self):
         return f"{self.__class__.__name__} with size {self.df.shape}"
