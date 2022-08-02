@@ -14,6 +14,7 @@ from appdirs import user_data_dir
 from deepmerge import always_merger
 from statistics import mean
 from metrics_collector.orchestrator.generic import register_dag_name
+from metrics_collector.utils import get_cache_dir
 
 Number = Union[int, float]
 
@@ -31,6 +32,8 @@ class DaysActivities(TypedDict):
 
 @dataclass
 class BaseExtractParameters:
+    """Base dataclass for extraction parameters.
+    Aassure that repr of individual attributes are serializable or set repr=False as field"""
     ...
 
 
@@ -40,18 +43,28 @@ class BaseExtract(ABC):
                              'min': min,
                              'mean': mean,
                              'sum': sum}
-    cache_dir = os.getenv('CACHE_DIR', None) or user_data_dir(__package__)
+    cache_dir = get_cache_dir()
     params_file = f'{cache_dir}/params'
     dag_name: str | Iterable = NotImplemented
+    parameters = {}
 
     @abstractmethod
     def __init__(self, parameters: BaseExtractParameters):
         ...
 
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self._get_arguments()}'
+
     def __init_subclass__(cls, **kwargs):
         if cls.dag_name is NotImplemented:
             raise NotImplemented("the dag_name is required for extract, transform and load subclasses")
         register_dag_name(cls)
+
+    def _get_arguments(self):
+        try:
+            return self.parameters
+        except NameError:
+            return self.get_parameters()
 
     @classmethod
     def get_parameters(cls) -> parameter_dict:
@@ -128,6 +141,7 @@ class BaseExtract(ABC):
         self.__class__.store_params(self.parameters.__dict__)  # save last working params
         logger.debug(f'attempt get cache data from {cache_file}')
         if (j := self.from_json(cache_file, date_)) is not None:
+            logger.debug(f'found cached {len(j)} bytes')
             return j
         logger.debug(f'getting data for {date_}')
         j = self.get_data_from_service(date_)
