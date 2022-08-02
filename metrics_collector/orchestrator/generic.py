@@ -2,6 +2,9 @@ from __future__ import annotations  # required to avoid circular imports for typ
 
 import asyncio
 import datetime
+import pickle
+import shelve
+import zlib
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Type, Annotated, Iterable, Callable, Union, Generator, Any, Protocol
@@ -9,13 +12,16 @@ import metrics_collector
 from enum import Enum, auto
 from typing import TYPE_CHECKING
 from loguru import logger
+from functools import wraps
 
-from metrics_collector.utils import get_days_between
+from metrics_collector.utils import get_days_between, get_cache_dir
 
 if TYPE_CHECKING:
     from metrics_collector.extract.base import parameter_dict, BaseExtract, BaseExtractParameters  # only when typing
     from metrics_collector.transform.base import BaseTransform
     from metrics_collector.load.base import BaseLoadGraph
+
+Params = dict[Annotated[str, "param name"], Annotated[str, "value"]]
 
 
 class ClassType(str, Enum):
@@ -35,7 +41,29 @@ class ProgressBar(ABC):
         ...
 
 
-Params = dict[Annotated[str, "param name"], Annotated[str, "value"]]
+def cache_graph_data(func):
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        # TODO: finalize cache
+        cache_dir = get_cache_dir()
+        cache_file = f'{cache_dir}/graph_cache'
+        today = datetime.date.today()
+        signature = f"[{today}, {func.__name__}({args})]"
+        s = shelve.open(cache_file)
+        existing: bytes | None = s.get(signature, None)
+        if existing:
+            result = pickle.loads(zlib.decompress(existing))
+            logger.debug(f'found cached data {len(result)} bytes for {signature}')
+            return result
+        else:
+            result = func(*args, **kwargs)
+            if not result:
+                return None
+            compressed = zlib.compress(pickle.dumps(result))
+            s[signature] = compressed
+            logger.debug(f'caching and compressing from {len(result)} bytes -> {len(compressed)} bytes for {signature}')
+            return result
+    return wrapped
 
 
 def register_dag_name(cls):
@@ -150,8 +178,10 @@ class Orchestrator:
         for graph in load_instance.get_all_graph_methods():
             yield getattr(load_instance, f'to_{format}')(graph)
 
+    @cache_graph_data
     def get_graph(self, graph_name: str, from_: datetime.date | str, to_: datetime.date | str, dag_name: str, transform_object: BaseTransform, format_: Annotated[str, "Type such as `html` or `png`"] = 'html') -> Any:
         """Main entrypoint for getting all graph objects with methods such as .to_htm() or .to_png()"""
+        # TODO: add decorator
         load_class: Type[BaseLoadGraph] = self._get_registered_classes(dag_name, ClassType.load, only_first=True)
         logger.debug('done get registered classes')
         logger.debug(f'{load_class=}')
@@ -163,6 +193,7 @@ class Orchestrator:
                 return getattr(load_instance, f'to_{format_}')(graph)
 
     @staticmethod
+    @cache_graph_data
     def process_dates(extract_objects, from_, to_, progress_bar: ProgressBar | None = None):
         """Method of assure data retrieved from service for the period given"""
         # TODO: add decorator for caching data
