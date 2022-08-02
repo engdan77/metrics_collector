@@ -41,7 +41,7 @@ class ProgressBar(ABC):
         ...
 
 
-def cache_graph_data(func):
+def caching(func):
     @wraps(func)
     def wrapped(*args, **kwargs):
         cache_dir = get_cache_dir()
@@ -177,7 +177,7 @@ class Orchestrator:
         for graph in load_instance.get_all_graph_methods():
             yield getattr(load_instance, f'to_{format}')(graph)
 
-    @cache_graph_data
+    @caching
     def get_graph(self, graph_name: str, from_: datetime.date | str, to_: datetime.date | str, dag_name: str, transform_object: BaseTransform, format_: Annotated[str, "Type such as `html` or `png`"] = 'html') -> Any:
         """Main entrypoint for getting all graph objects with methods such as .to_htm() or .to_png()"""
         load_class: Type[BaseLoadGraph] = self._get_registered_classes(dag_name, ClassType.load, only_first=True)
@@ -191,7 +191,7 @@ class Orchestrator:
                 return getattr(load_instance, f'to_{format_}')(graph)
 
     @staticmethod
-    @cache_graph_data
+    @caching
     def process_dates(extract_objects, from_, to_, progress_bar: ProgressBar | None = None):
         """Method of assure data retrieved from service for the period given"""
         dates = list(get_days_between(from_, to_))
