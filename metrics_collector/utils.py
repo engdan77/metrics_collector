@@ -1,9 +1,12 @@
+import os
 from datetime import datetime, timedelta, date
 from typing import Generator
 import datetime
 
+from appdirs import user_data_dir
 from loguru import logger
 from parsedatetime import Calendar
+
 
 def get_past_days(number_days: int = 1, offset=0) -> Generator:
     today = datetime.now()
@@ -32,3 +35,6 @@ def get_days_between(from_: str | datetime.date, to_: str | datetime.date, as_te
         r: datetime.date = from_ + timedelta(days=day)
         yield r.strftime(fmt) if as_text else r
 
+
+def get_cache_dir():
+    return os.getenv('CACHE_DIR', None) or user_data_dir(__package__)
