@@ -10,9 +10,9 @@ from metrics_collector.storage.uriloader import uri_loader
 
 
 @dataclass
-class AppleHealthExtractParameters:
+class AppleHealthExtractParameters(BaseExtractParameters):
     apple_uri_health_data: str
-    uri_loader: Callable[[Annotated[str, "uri_string"]], bytes] = field(init=False, default=uri_loader)
+    uri_loader: Callable[[Annotated[str, "uri_string"]], bytes] = field(init=False, default=uri_loader, repr=False)
 
 
 class AppleHealthExtract(BaseExtract):
