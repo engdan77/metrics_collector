@@ -98,6 +98,9 @@ class Orchestrator:
                      ClassType.transform: metrics_collector.transform.base.BaseTransform,
                      ClassType.load: metrics_collector.load.base.BaseLoadGraph}
 
+    def __repr__(self):
+        return f'{self.__class__.__name__}()'
+
     def get_dag_names(self) -> list:
         """Get what registered services"""
         return list(self.registered_etl_entities.keys())
