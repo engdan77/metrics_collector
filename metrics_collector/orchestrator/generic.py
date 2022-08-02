@@ -44,7 +44,6 @@ class ProgressBar(ABC):
 def cache_graph_data(func):
     @wraps(func)
     def wrapped(*args, **kwargs):
-        # TODO: finalize cache
         cache_dir = get_cache_dir()
         cache_file = f'{cache_dir}/graph_cache'
         today = datetime.date.today()
@@ -53,15 +52,15 @@ def cache_graph_data(func):
         existing: bytes | None = s.get(signature, None)
         if existing:
             result = pickle.loads(zlib.decompress(existing))
-            logger.debug(f'found cached data {len(result)} bytes for {signature}')
+            s.close()
+            logger.debug(f'found cached data {len(result) if result else 0} bytes for {signature}')
             return result
         else:
             result = func(*args, **kwargs)
-            if not result:
-                return None
             compressed = zlib.compress(pickle.dumps(result))
             s[signature] = compressed
-            logger.debug(f'caching and compressing from {len(result)} bytes -> {len(compressed)} bytes for {signature}')
+            logger.debug(f'caching and compressing from {len(result) if result else 0} bytes -> {len(compressed)} bytes for {signature}')
+            s.close()
             return result
     return wrapped
 
@@ -181,7 +180,6 @@ class Orchestrator:
     @cache_graph_data
     def get_graph(self, graph_name: str, from_: datetime.date | str, to_: datetime.date | str, dag_name: str, transform_object: BaseTransform, format_: Annotated[str, "Type such as `html` or `png`"] = 'html') -> Any:
         """Main entrypoint for getting all graph objects with methods such as .to_htm() or .to_png()"""
-        # TODO: add decorator
         load_class: Type[BaseLoadGraph] = self._get_registered_classes(dag_name, ClassType.load, only_first=True)
         logger.debug('done get registered classes')
         logger.debug(f'{load_class=}')
@@ -196,7 +194,6 @@ class Orchestrator:
     @cache_graph_data
     def process_dates(extract_objects, from_, to_, progress_bar: ProgressBar | None = None):
         """Method of assure data retrieved from service for the period given"""
-        # TODO: add decorator for caching data
         dates = list(get_days_between(from_, to_))
         tot = len(list(dates)) * len(extract_objects)
         for idx_extract, extract_object in enumerate(extract_objects, start=1):
