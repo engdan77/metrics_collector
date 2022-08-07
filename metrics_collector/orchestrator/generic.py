@@ -48,6 +48,7 @@ class Staller:
                 return default
             await asyncio.sleep(1)
             cls._remove_long_running()
+        return default
 
     @classmethod
     def _remove_long_running(cls):
