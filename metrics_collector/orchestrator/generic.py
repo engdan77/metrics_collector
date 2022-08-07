@@ -36,13 +36,15 @@ class Staller:
     """Class meant for stall execution such case call already in progress to avoid congestions.
     Need no instantiation (compared to singleton)
     """
-    running_jobs: dict[Annotated[tuple, "function name, args, kwargs"], Annotated[int, "time started"]] = {}
+    _running_jobs: dict[Annotated[tuple, "function name, args, kwargs"], Annotated[int, "time started"]] = {}
     expire_secs = 180
     clean_up_hours = 6
 
     @classmethod
     async def stall(cls, function, arg, kwargs, default=None, expire_after=expire_secs):
         """Run class method for activate staller"""
+        if remaining_time := cls._get_stall_time(function, arg, kwargs):
+            logger.debug(f'will stall {function}({arg}, {kwargs}) for {remaining_time} secs')
         for _ in range(expire_after):
             if not cls._is_running(function, arg, kwargs):
                 return default
@@ -51,14 +53,20 @@ class Staller:
         return default
 
     @classmethod
+    def _get_stall_time(cls, function, args, kwargs) -> int:
+        if start_time := cls._running_jobs.get((function, args, kwargs), None):
+            remaining_secs = cls._now() - start_time
+            return remaining_secs if remaining_secs > 0 else None
+
+    @classmethod
     def _remove_long_running(cls):
-        for args, start_time in cls.running_jobs.items():
+        for args, start_time in cls._running_jobs.items():
             if cls._now() > int(start_time) + cls.clean_up_hours * 3600:
-                cls.running_jobs.pop(args)
+                cls._running_jobs.pop(args)
 
     @classmethod
     def _is_running(cls, function, args, kwargs):
-        return (function, args, kwargs) in cls.running_jobs
+        return (function, args, kwargs) in cls._running_jobs
 
     @staticmethod
     def _now(self):
@@ -79,6 +87,7 @@ class ProgressBar(ABC):
 def caching(func):
     @wraps(func)
     def wrapped(*args, **kwargs):
+        Staller.stall(func, args, kwargs)
         cache_dir = get_cache_dir()
         cache_file = f'{cache_dir}/graph_cache'
         today = datetime.date.today()
