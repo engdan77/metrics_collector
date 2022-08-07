@@ -33,19 +33,34 @@ class ClassType(str, Enum):
 
 
 class Staller:
-    """Class meant for stall execution such case call already in progress to avoid congestions"""
+    """Class meant for stall execution such case call already in progress to avoid congestions.
+    Need no instantiation (compared to singleton)
+    """
     running_jobs: dict[Annotated[tuple, "function name, args, kwargs"], Annotated[int, "time started"]] = {}
-
-    def stall(self, function, arg, kwargs):
-        if self.is_running(function, arg, kwargs):
-            ...
+    expire_secs = 180
+    clean_up_hours = 6
 
     @classmethod
-    def is_running(cls, function, args, kwargs):
+    async def stall(cls, function, arg, kwargs, default=None, expire_after=expire_secs):
+        """Run class method for activate staller"""
+        for _ in range(expire_after):
+            if not cls._is_running(function, arg, kwargs):
+                return default
+            await asyncio.sleep(1)
+            cls._remove_long_running()
+
+    @classmethod
+    def _remove_long_running(cls):
+        for args, start_time in cls.running_jobs.items():
+            if cls._now() > int(start_time) + cls.clean_up_hours * 3600:
+                cls.running_jobs.pop(args)
+
+    @classmethod
+    def _is_running(cls, function, args, kwargs):
         return (function, args, kwargs) in cls.running_jobs
 
     @staticmethod
-    def now(self):
+    def _now(self):
         return int(time.time())
 
 
