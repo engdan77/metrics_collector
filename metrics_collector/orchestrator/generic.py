@@ -16,7 +16,6 @@ from loguru import logger
 from functools import wraps
 
 from metrics_collector.utils import get_days_between, get_cache_dir
-from metrics_collector.load import GraphFormat
 
 if TYPE_CHECKING:
     from metrics_collector.extract.base import parameter_dict, BaseExtract, BaseExtractParameters  # only when typing
@@ -92,7 +91,6 @@ def caching(func):
         cache_file = f'{cache_dir}/graph_cache'
         today = datetime.date.today()
         signature = f"[{today}, {func.__name__}({args})]"
-        # graph_format = next(iter([_.name for _ in args if isinstance(_, GraphFormat)]), None)
         s = shelve.open(cache_file)
         existing: bytes | None = s.get(signature, None)
         if existing:
