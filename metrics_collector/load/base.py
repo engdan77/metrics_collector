@@ -1,6 +1,7 @@
+import collections
 import datetime
 from abc import ABC, abstractmethod
-from enum import Enum, auto
+from enum import auto
 from typing import Callable, Iterable, Annotated
 
 from metrics_collector.orchestrator.generic import register_dag_name
@@ -44,5 +45,5 @@ class BaseLoadGraph(ABC):
 
     def get_all_graphs(self, graph_format: GraphFormat):
         format_method = getattr(self, self.graph_formats[graph_format])
-        for graph_method in self.get_all_graph_methods:
+        for graph_method in self.get_all_graph_methods():
             yield format_method(graph_method)
