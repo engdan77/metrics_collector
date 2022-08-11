@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 from loguru import logger
 from functools import wraps
 
-from metrics_collector.utils import get_days_between, get_cache_dir
+from metrics_collector.utils import get_days_between, get_cache_dir, normalize_period
 
 if TYPE_CHECKING:
     from metrics_collector.extract.base import parameter_dict, BaseExtract, BaseExtractParameters  # only when typing
@@ -220,6 +220,7 @@ class Orchestrator:
     def get_all_graphs(self, from_: datetime.date | str, to_: datetime.date | str, dag_name: str, transform_object: BaseTransform, format: Annotated[str, "Type such as `html` or `png`"] = 'html') -> Generator[Any, None, None]:
         """Main entrypoint for getting all graph objects with methods such as .to_htm() or .to_png()"""
         load_class: Type[BaseLoadGraph] = self._get_registered_classes(dag_name, ClassType.load, only_first=True)
+        from_, to_ = normalize_period(from_, to_)
         load_instance = load_class(transform_object, from_, to_)
         for graph in load_instance.get_all_graph_methods():
             yield getattr(load_instance, f'to_{format}')(graph)
