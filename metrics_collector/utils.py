@@ -27,6 +27,17 @@ def normalize_period(from_: date | str, to_: date | str, fmt: str = '%Y-%m-%d') 
     return from_, to_
 
 
+def normalize_date(d: date | str, fmt: str = '%Y-%m-%d') -> date:
+    try:
+        d = datetime.datetime.strptime(d, fmt).date()
+    except TypeError:
+        pass
+    except ValueError:
+        c = Calendar()  # attempt parse as human text e.g. "6 months ago"
+        d = date(*c.parse(d)[0][:3])
+    return d
+
+
 def get_days_between(from_: str | datetime.date, to_: str | datetime.date, as_text=True, fmt='%Y-%m-%d'):
     from_, to_ = normalize_period(from_, to_)
     logger.info(f'extracting data for period {from_}, {to_}')
