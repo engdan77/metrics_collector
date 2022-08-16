@@ -116,9 +116,14 @@ class BaseExtract(ABC):
     def to_json(self, filename: str, data: DaysActivities) -> None:
         f = Path(filename)
         if f.exists():
-            current_data = json.loads(f.read_text())
-            self.pop_existing_days(current_data, data)
-            data = always_merger.merge(current_data, data)
+            try:
+                current_data = json.loads(f.read_text())
+            except json.decoder.JSONDecodeError:
+                logger.warning(f'{f.as_posix()} is corrupt, removing')
+                f.unlink(missing_ok=True)
+            else:
+                self.pop_existing_days(current_data, data)
+                data = always_merger.merge(current_data, data)
         with open(filename, "w") as f:
             json.dump(data, f, indent=2)
 
@@ -127,7 +132,14 @@ class BaseExtract(ABC):
         if not Path(filename).exists():
             return None
         with open(filename) as f:
-            j = json.load(f)
+            try:
+                j = json.load(f)
+            except json.decoder.JSONDecodeError as e:
+                now = datetime.datetime.now().replace(microsecond=0).isoformat('_')
+                backup_file = f'{filename}_{now}'
+                logger.warning(f'Unable to read from cached JSON, most likely corrupt with following error {e.msg} saving backup to {backup_file}')
+                Path(backup_file).write_text(f.read())
+                return None
         if not date_:
             return j
         else:
