@@ -27,7 +27,20 @@ def rest_get_extract_params(query_params, dag_name, orchestrator):
 
 
 def graph(**args):
-    """Accepts arguments by dynamically generated parameters and generates graph data"""
+    """Accepts arguments by dynamically generated parameters and generates graph data
+    Expected arguments
+    graph: GraphEnum.graph (which graph)
+    format: GraphFormat (enum such as GraphFormat.png)
+    from_date: YYYY-MM-DD
+    to_date: YYYY-MM-DD
+
+    Depending which LoadClass e.g.
+    apple_uri_health_data: str (if None use cached)
+    garmin_username:
+    garmin_password:
+    """
+
+    # TODO: refactor common parts
     media_type = mimetypes.types_map[f'.{args["format"]}']
     logger.debug(f'{args=}')
     dag_name = args['request'].scope['path'].split('/').pop()
