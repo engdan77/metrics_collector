@@ -87,6 +87,7 @@ def caching(func):
     @wraps(func)
     def wrapped(*args, **kwargs):
         Staller.stall(func, args, kwargs)
+        # TODO: RuntimeWarning: coroutine 'Staller.stall' was never awaited
         cache_dir = get_cache_dir()
         cache_file = f'{cache_dir}/graph_cache'
         today = datetime.date.today()
