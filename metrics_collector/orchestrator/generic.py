@@ -3,6 +3,7 @@ from __future__ import annotations  # required to avoid circular imports for typ
 import asyncio
 import datetime
 import pickle
+import re
 import shelve
 import time
 import zlib
@@ -35,34 +36,51 @@ class Staller:
     """Class meant for stall execution such case call already in progress to avoid congestions.
     Need no instantiation (compared to singleton)
     """
-    _running_jobs: dict[Annotated[tuple, "function name, args, kwargs"], Annotated[int, "time started"]] = {}
+    _running_jobs: dict[Annotated[str, "function name, args, kwargs"], Annotated[int, "time started"]] = {}
     expire_secs = 180
     clean_up_hours = 6
 
     @classmethod
-    def sync_sleep(cls, time_secs):
-        time.sleep(time_secs)
-
-    @classmethod
-    async def async_sleep(cls, time_secs):
-        await asyncio.sleep(time_secs)
-
-    @classmethod
-    async def stall(cls, function, arg, kwargs, default=None, expire_after=expire_secs):
-        """Run class method for activate staller"""
-        # TODO: handle sync or async
-        if remaining_time := cls._get_stall_time(function, arg, kwargs):
-            logger.debug(f'will stall {function}({arg}, {kwargs}) for {remaining_time} secs')
-        for _ in range(expire_after):
-            if not cls._is_running(function, arg, kwargs):
-                return default
-            await asyncio.sleep(1)
-            cls._remove_long_running()
+    def sync_stall(cls, function, arg, kwargs, default=None, expire_after=expire_secs):
+        """Use for sync mode"""
+        cls._pre_stall(arg, function, kwargs)
+        if not cls._is_running(function, arg, kwargs):
+            return default
+        else:
+            cls._running_jobs[cls._get_signature(function, arg, kwargs)] = cls._now()
+            for _ in range(expire_after):
+                time.sleep(1)
         return default
 
     @classmethod
+    async def async_stall(cls, function, arg, kwargs, default=None, expire_after=expire_secs):
+        """Use for async mode"""
+        cls._pre_stall(arg, function, kwargs)
+        if not cls._is_running(function, arg, kwargs):
+            return default
+        else:
+            cls._running_jobs[cls._get_signature(function, arg, kwargs)] = cls._now()
+            for _ in range(expire_after):
+                await asyncio.sleep(1)
+        return default
+
+    @classmethod
+    def _get_signature(cls, func, args, kwargs):
+        return re.sub(r' object at \w+', '', f'{func.__name__} {args} {kwargs}')
+
+    @classmethod
+    def _pre_stall(cls, arg, function, kwargs):
+        cls._remove_long_running()
+        logger.info(f'currently {len(cls._running_jobs)} currently running using function {function.__name__}')
+        if remaining_time := cls._get_stall_time(function, arg, kwargs):
+            logger.debug(f'will stall {function}({arg}, {kwargs}) for {remaining_time} secs')
+        else:
+            logger.debug(f'not stalling {function.__name__} not currently working')
+
+    @classmethod
     def _get_stall_time(cls, function, args, kwargs) -> int:
-        if start_time := cls._running_jobs.get((function, args, kwargs), None):
+        sign = cls._get_signature(function, args, kwargs)
+        if start_time := cls._running_jobs.get(sign, None):
             remaining_secs = cls._now() - start_time
             return remaining_secs if remaining_secs > 0 else None
 
@@ -74,10 +92,10 @@ class Staller:
 
     @classmethod
     def _is_running(cls, function, args, kwargs):
-        return (function, args, kwargs) in cls._running_jobs
+        return cls._get_signature(function, args, kwargs) in cls._running_jobs
 
-    @staticmethod
-    def _now(self):
+    @classmethod
+    def _now(cls):
         return int(time.time())
 
 
@@ -118,18 +136,17 @@ def caching(func):
             return result
 
     def sync_cache(*args, **kwargs):
-        Staller.stall(func, args, kwargs)
+        Staller.sync_stall(func, args, kwargs)
         return cache_function(*args, **kwargs)
 
     async def async_cache(*args, **kwargs):
-        await Staller.stall(func, args, kwargs)
+        await Staller.async_stall(func, args, kwargs)
         return cache_function(*args, **kwargs)
 
     if asyncio.iscoroutine(func):
         return async_cache
     else:
         return sync_cache
-
 
 
 def register_dag_name(cls):
