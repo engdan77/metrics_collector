@@ -40,8 +40,17 @@ class Staller:
     clean_up_hours = 6
 
     @classmethod
+    def sync_sleep(cls, time_secs):
+        time.sleep(time_secs)
+
+    @classmethod
+    async def async_sleep(cls, time_secs):
+        await asyncio.sleep(time_secs)
+
+    @classmethod
     async def stall(cls, function, arg, kwargs, default=None, expire_after=expire_secs):
         """Run class method for activate staller"""
+        # TODO: handle sync or async
         if remaining_time := cls._get_stall_time(function, arg, kwargs):
             logger.debug(f'will stall {function}({arg}, {kwargs}) for {remaining_time} secs')
         for _ in range(expire_after):
@@ -84,9 +93,10 @@ class ProgressBar(ABC):
 
 
 def caching(func):
+    """Custom caching (memoize) that supports either sync or async"""
+
     @wraps(func)
-    def wrapped(*args, **kwargs):
-        Staller.stall(func, args, kwargs)
+    def cache_function(*args, **kwargs):
         # TODO: RuntimeWarning: coroutine 'Staller.stall' was never awaited
         cache_dir = get_cache_dir()
         cache_file = f'{cache_dir}/graph_cache'
@@ -106,7 +116,20 @@ def caching(func):
             logger.debug(f'caching and compressing from {len(result) if result else 0} bytes -> {len(compressed)} bytes for {signature}')
             s.close()
             return result
-    return wrapped
+
+    def sync_cache(*args, **kwargs):
+        Staller.stall(func, args, kwargs)
+        return cache_function(*args, **kwargs)
+
+    async def async_cache(*args, **kwargs):
+        await Staller.stall(func, args, kwargs)
+        return cache_function(*args, **kwargs)
+
+    if asyncio.iscoroutine(func):
+        return async_cache
+    else:
+        return sync_cache
+
 
 
 def register_dag_name(cls):
