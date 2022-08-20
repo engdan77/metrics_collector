@@ -9,7 +9,7 @@ from pywebio.platform.fastapi import asgi_app
 from metrics_collector.orchestrator.generic import Orchestrator
 from metrics_collector.scheduler.base import AsyncService
 from metrics_collector.web.rest import graph_router
-from metrics_collector.web.ui import main_ui
+from metrics_collector.web.ui import ui_show, ui_add_schedule
 
 app = FastAPI()
 app.include_router(graph_router, prefix='/graph')
@@ -44,12 +44,11 @@ class WebServer:
             service.start()
 
     def mounts(self):
-        ui = asgi_app(main_ui)
-        app.mount("/ui", ui)
+        app.mount("/show", asgi_app(ui_show))
+        app.mount("/add_schedule", asgi_app(ui_add_schedule))
 
     def start(self):
         self.server.serve()
-
 
 
 if __name__ == "__main__":

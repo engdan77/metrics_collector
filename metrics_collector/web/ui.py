@@ -95,11 +95,18 @@ def get_extract_params(dag_name, orchestrator):
     return extract_params
 
 
-def main_ui():
+def ui_add_schedule():
+    """This is UI to get input and add scheduled job"""
     o = Orchestrator()
-
     dag_name, from_, to_ = ui_get_service_and_interval(o)
+    extract_params = get_extract_params(dag_name, o)  # determine if params already stored
+    ...
 
+
+def ui_show():
+    """This is the main UI for get input and plot graphs to the screen"""
+    o = Orchestrator()
+    dag_name, from_, to_ = ui_get_service_and_interval(o)
     extract_params = get_extract_params(dag_name, o)  # determine if params already stored
     extract_objects = o.get_extract_objects(dag_name, extract_params)  # required with extract_params as dict
 
