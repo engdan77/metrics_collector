@@ -2,12 +2,13 @@ import datetime
 import itertools
 import json
 import re
+from functools import partial
 from pathlib import Path
 from typing import Iterable, Type, Annotated, Protocol
 import pywebio.input
 from parsedatetime import Calendar
-from pywebio.input import input, radio, select, input_group
-from pywebio.output import put_html, put_processbar, set_processbar, put_text, clear
+from pywebio.input import input, radio, select, input_group, checkbox
+from pywebio.output import put_html, put_processbar, set_processbar, put_text, clear, put_table, put_buttons
 from metrics_collector.orchestrator.generic import Orchestrator, ClassType, ProgressBar
 from loguru import logger
 
@@ -119,15 +120,40 @@ def save_scheduler_config(dag_name: str, from_: str, to_: str, extract_params: d
     logger.info(f'saving configuration {c.as_posix()}')
 
 
+def ui_get_schedule_options():
+    """Define scheduling options"""
+    # TODO: Add scheduling options
+
+
 def ui_add_schedule():
     """This is UI to get input and add scheduled job"""
     o = Orchestrator()
     dag_name, from_, to_ = ui_get_service_and_interval(o)
     extract_params = get_extract_params(dag_name, o)  # determine if params already stored
     action = ui_get_action_options()
+    schedule = ui_get_schedule_options()
     save_scheduler_config(dag_name, from_, to_, extract_params, action)
     clear()
     put_text('Scheduler configuration updated....')
+
+
+def ui_remove_schedule():
+    def delete_row(choice, row):
+        logger.info(f'deleting item {row} from schedules')
+        config = get_scheduler_config()
+        config.pop(row)
+        f = scheduler_config_file()
+        f.write_text(json.dumps(config, indent=4))
+        clear()
+        put_text(f'Removed {row} from scheduled jobs')
+
+    table_rows = [('#', 'Service', 'From', 'To', 'Action', '')]
+    for i, item in enumerate(get_scheduler_config()):
+        dag_name, from_, to_, _, action_container = item
+        action = action_container['action']
+        action = f'{action}: {action_container["to_email"]}' if action == 'Email' else action
+        table_rows.append((i, dag_name, from_, to_, action, put_buttons(['delete'], onclick=partial(delete_row, row=i))))
+    put_table(table_rows)
 
 
 def ui_get_email_properties():
@@ -147,9 +173,9 @@ def ui_get_action_options():
     """Present the options for scheduler"""
     clear()
     action_type = select('What action', ('Email', 'Cache'))
-    action_properties = {}
+    action_properties = {'action': action_type}
     if action_type == 'Email':
-        action_properties = ui_get_email_properties()
+        action_properties.update(ui_get_email_properties())
     return action_properties
 
 
