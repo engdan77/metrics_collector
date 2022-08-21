@@ -1,5 +1,8 @@
 import datetime
 import itertools
+import json
+import re
+from pathlib import Path
 from typing import Iterable, Type, Annotated, Protocol
 import pywebio.input
 from parsedatetime import Calendar
@@ -8,7 +11,7 @@ from pywebio.output import put_html, put_processbar, set_processbar, put_text, c
 from metrics_collector.orchestrator.generic import Orchestrator, ClassType, ProgressBar
 from loguru import logger
 
-from metrics_collector.utils import normalize_date
+from metrics_collector.utils import normalize_date, get_cache_dir
 
 Params = dict[Annotated[str, "param name"], Annotated[str, "value"]]
 
@@ -95,12 +98,59 @@ def get_extract_params(dag_name, orchestrator):
     return extract_params
 
 
+def scheduler_config_file() -> Path:
+    c = get_cache_dir()
+    return Path(f'{c}/scheduler.json')
+
+
+def get_scheduler_config() -> list:
+    f = scheduler_config_file()
+    if f.exists():
+        return json.loads(f.read_text())
+
+
+def save_scheduler_config(dag_name: str, from_: str, to_: str, extract_params: dict, action: dict):
+    config = []
+    if current_config := get_scheduler_config():
+        config = current_config
+    config.append((dag_name, from_, to_, extract_params, action))
+    c = scheduler_config_file()
+    c.write_text(json.dumps(config, indent=4))
+    logger.info(f'saving configuration {c.as_posix()}')
+
+
 def ui_add_schedule():
     """This is UI to get input and add scheduled job"""
     o = Orchestrator()
     dag_name, from_, to_ = ui_get_service_and_interval(o)
     extract_params = get_extract_params(dag_name, o)  # determine if params already stored
-    ...
+    action = ui_get_action_options()
+    save_scheduler_config(dag_name, from_, to_, extract_params, action)
+    clear()
+    put_text('Scheduler configuration updated....')
+
+
+def ui_get_email_properties():
+    def check_form(data):
+        if not re.match(r'^[\w\-\.]+@([\w-]+\.)+[\w-]{2,4}$', data['to_email']):
+            return ('to_email', 'Not a valid email')
+
+    data = input_group("Email properties", [
+        input('To email', name='to_email'),
+        input('Subject', name='subject'),
+        input('Body', name='body')
+    ], validate=check_form)
+    return data
+
+
+def ui_get_action_options():
+    """Present the options for scheduler"""
+    clear()
+    action_type = select('What action', ('Email', 'Cache'))
+    action_properties = {}
+    if action_type == 'Email':
+        action_properties = ui_get_email_properties()
+    return action_properties
 
 
 def ui_show():
