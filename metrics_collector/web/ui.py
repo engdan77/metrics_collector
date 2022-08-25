@@ -123,7 +123,13 @@ def save_scheduler_config(dag_name: str, from_: str, to_: str, extract_params: d
 def ui_get_schedule_options():
     """Define scheduling options"""
     # TODO: Add scheduling options
-
+    form = input_group('Schedule', [input('year', type='text'),
+                                    input('month', type='text'),
+                                    input('day', type='text'),
+                                    input('day_of_week', type='text'),
+                                    input('hour', type='text'),
+                                    input('minute', type='text')])
+    # sched.add_job(job, 'cron', month= '6-8,11-12', day= '3rd fri', hour= '0-4', args= ['job 4'])
 
 def ui_add_schedule():
     """This is UI to get input and add scheduled job"""
@@ -148,6 +154,7 @@ def ui_remove_schedule():
         put_text(f'Removed {row} from scheduled jobs')
 
     table_rows = [('#', 'Service', 'From', 'To', 'Action', '')]
+    # TODO: Add scheduled job - when
     for i, item in enumerate(get_scheduler_config()):
         dag_name, from_, to_, _, action_container = item
         action = action_container['action']
