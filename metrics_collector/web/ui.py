@@ -1,3 +1,4 @@
+import dataclasses
 import datetime
 import itertools
 import json
@@ -109,27 +110,43 @@ def get_scheduler_config() -> list:
     if f.exists():
         return json.loads(f.read_text())
 
+@dataclasses.dataclass
+class ScheduleParams:
+    year: str
+    month: str
+    day: str
+    day_of_week: str
+    hour: str
+    minute: str
 
-def save_scheduler_config(dag_name: str, from_: str, to_: str, extract_params: dict, action: dict):
+
+@dataclasses.dataclass
+class ScheduleConfig:
+    dag_name: str
+    from_: str
+    to_: str
+    extract_params: dict
+    schedule_params: ScheduleParams
+
+
+def save_scheduler_config(schedule_config: ScheduleConfig):
     config = []
     if current_config := get_scheduler_config():
         config = current_config
-    config.append((dag_name, from_, to_, extract_params, action))
+    config.append(dataclasses.asdict(schedule_config))
     c = scheduler_config_file()
     c.write_text(json.dumps(config, indent=4))
     logger.info(f'saving configuration {c.as_posix()}')
 
 
-def ui_get_schedule_options():
+def ui_get_schedule_options() -> ScheduleParams:
     """Define scheduling options"""
+    fields = [input(_, type='text', name=_) for _ in ('year', 'month', 'day', 'day_of_week', 'hour', 'minute')]
     # TODO: Add scheduling options
-    form = input_group('Schedule', [input('year', type='text'),
-                                    input('month', type='text'),
-                                    input('day', type='text'),
-                                    input('day_of_week', type='text'),
-                                    input('hour', type='text'),
-                                    input('minute', type='text')])
+    form = input_group('Schedule', fields)
     # sched.add_job(job, 'cron', month= '6-8,11-12', day= '3rd fri', hour= '0-4', args= ['job 4'])
+    return ScheduleParams(**form)
+
 
 def ui_add_schedule():
     """This is UI to get input and add scheduled job"""
@@ -137,8 +154,9 @@ def ui_add_schedule():
     dag_name, from_, to_ = ui_get_service_and_interval(o)
     extract_params = get_extract_params(dag_name, o)  # determine if params already stored
     action = ui_get_action_options()
-    schedule = ui_get_schedule_options()
-    save_scheduler_config(dag_name, from_, to_, extract_params, action)
+    schedule_params = ui_get_schedule_options()
+    schedule_config = ScheduleConfig(dag_name, from_, to_, extract_params, schedule_params)
+    save_scheduler_config(schedule_config)
     clear()
     put_text('Scheduler configuration updated....')
 
