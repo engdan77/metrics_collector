@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Tuple
+from typing import Optional, List, Dict, Tuple, TypedDict, Annotated
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
 from asyncio.events import AbstractEventLoop
@@ -13,6 +13,19 @@ from metrics_collector.scheduler.base import AsyncService
 
 if not sys.warnoptions:  # allow overriding with `-W` option
     warnings.filterwarnings("ignore", category=RuntimeWarning, module="runpy")
+
+
+class ScheduleParams(TypedDict):
+    """
+    Typing for Schedule Params.
+    More info here https://apscheduler.readthedocs.io/en/3.x/modules/triggers/cron.html
+    """
+    year: int | str
+    month: int | str
+    day: int | str
+    day_of_week: int | str
+    hour: int | str
+    minute: int | str
 
 
 class MyScheduler(AsyncService):
@@ -37,6 +50,18 @@ class MyScheduler(AsyncService):
             self.loop.create_task(self.start_async())
         else:
             self.scheduler.start()
+
+    @classmethod
+    def verify_job(cls, schedule_params: ScheduleParams, temp_scheduler=AsyncIOScheduler) -> tuple[Annotated[bool, "success"], Annotated[str, "message"] | None]:
+        """Method for verifying schedule params"""
+        try:
+            job = temp_scheduler().add_job(lambda: None, 'cron', **schedule_params)
+        except ValueError as e:
+            logger.warning(f'wrong schedule param {e}')
+            return False, str(e)
+        else:
+            job.remove()
+            return True, None
 
     async def start_async(self):
         self.scheduler.start()
