@@ -14,6 +14,7 @@ from metrics_collector.orchestrator.generic import Orchestrator, ClassType, Prog
 from loguru import logger
 
 from metrics_collector.utils import normalize_date, get_cache_dir
+from metrics_collector.scheduler.api import ScheduleParams, MyScheduler
 
 Params = dict[Annotated[str, "param name"], Annotated[str, "value"]]
 
@@ -110,15 +111,6 @@ def get_scheduler_config() -> list:
     if f.exists():
         return json.loads(f.read_text())
 
-@dataclasses.dataclass
-class ScheduleParams:
-    year: str
-    month: str
-    day: str
-    day_of_week: str
-    hour: str
-    minute: str
-
 
 @dataclasses.dataclass
 class ScheduleConfig:
@@ -141,11 +133,16 @@ def save_scheduler_config(schedule_config: ScheduleConfig):
 
 def ui_get_schedule_options() -> ScheduleParams:
     """Define scheduling options"""
+
+    def check_form(data):
+        success, message = MyScheduler.verify_job(data)
+        if not success:
+            return ('year', f'{message}, check http://shorturl.at/bjOP0')
+
     fields = [input(_, type='text', name=_) for _ in ('year', 'month', 'day', 'day_of_week', 'hour', 'minute')]
-    # TODO: Add scheduling options
-    form = input_group('Schedule', fields)
-    # sched.add_job(job, 'cron', month= '6-8,11-12', day= '3rd fri', hour= '0-4', args= ['job 4'])
-    return ScheduleParams(**form)
+    form: ScheduleParams = input_group('Schedule', fields, validate=check_form)
+    logger.info(f'valid params {form}')
+    return form
 
 
 def ui_add_schedule():
