@@ -13,8 +13,9 @@ from pywebio.output import put_html, put_processbar, set_processbar, put_text, c
 from metrics_collector.orchestrator.generic import Orchestrator, ClassType, ProgressBar
 from loguru import logger
 
+from metrics_collector.scheduler.base import BaseAction
 from metrics_collector.utils import normalize_date, get_cache_dir
-from metrics_collector.scheduler.api import ScheduleParams, MyScheduler
+from metrics_collector.scheduler.api import ScheduleParams, MyScheduler, EmailAction, CacheAction, ActionType
 
 Params = dict[Annotated[str, "param name"], Annotated[str, "value"]]
 
@@ -119,6 +120,8 @@ class ScheduleConfig:
     to_: str
     extract_params: dict
     schedule_params: ScheduleParams
+    action_type: ActionType
+    action_data: BaseAction
 
 
 def save_scheduler_config(schedule_config: ScheduleConfig):
@@ -131,13 +134,19 @@ def save_scheduler_config(schedule_config: ScheduleConfig):
     logger.info(f'saving configuration {c.as_posix()}')
 
 
+def load_scheduler_config() -> list[ScheduleConfig]:
+    c = scheduler_config_file()
+    j = c.read_text()
+    return [ScheduleConfig(**config_item) for config_item in json.loads(j)]
+
+
 def ui_get_schedule_options() -> ScheduleParams:
     """Define scheduling options"""
 
     def check_form(data):
         success, message = MyScheduler.verify_job(data)
         if not success:
-            return ('year', f'{message}, check http://shorturl.at/bjOP0')
+            return 'year', f'{message}, check http://shorturl.at/bjOP0'
 
     fields = [input(_, type='text', name=_) for _ in ('year', 'month', 'day', 'day_of_week', 'hour', 'minute')]
     form: ScheduleParams = input_group('Schedule', fields, validate=check_form)
@@ -150,12 +159,17 @@ def ui_add_schedule():
     o = Orchestrator()
     dag_name, from_, to_ = ui_get_service_and_interval(o)
     extract_params = get_extract_params(dag_name, o)  # determine if params already stored
-    action = ui_get_action_options()
+    action_type, action_properties = ui_get_action_options()
     schedule_params = ui_get_schedule_options()
-    schedule_config = ScheduleConfig(dag_name, from_, to_, extract_params, schedule_params)
+    schedule_config = ScheduleConfig(dag_name, from_, to_, extract_params, schedule_params, action_type, action_properties)
     save_scheduler_config(schedule_config)
     clear()
     put_text('Scheduler configuration updated....')
+
+
+def ui_remove_schedule():
+    """This is UI for removing existing scheduled job"""
+    ...
 
 
 def ui_remove_schedule():
@@ -178,27 +192,26 @@ def ui_remove_schedule():
     put_table(table_rows)
 
 
-def ui_get_email_properties():
-    def check_form(data):
-        if not re.match(r'^[\w\-\.]+@([\w-]+\.)+[\w-]{2,4}$', data['to_email']):
-            return ('to_email', 'Not a valid email')
+def ui_get_email_properties() -> EmailAction:
+    def check_form(data_):
+        if not re.match(r'^[\w\-.]+@([\w-]+\.)+[\w-]{2,4}$', data_['to_email']):
+            return 'to_email', 'Not a valid email'
 
     data = input_group("Email properties", [
         input('To email', name='to_email'),
         input('Subject', name='subject'),
         input('Body', name='body')
     ], validate=check_form)
-    return data
+    return EmailAction(**data)
 
 
-def ui_get_action_options():
+def ui_get_action_options() -> tuple[ActionType, BaseAction]:
     """Present the options for scheduler"""
     clear()
-    action_type = select('What action', ('Email', 'Cache'))
-    action_properties = {'action': action_type}
-    if action_type == 'Email':
-        action_properties.update(ui_get_email_properties())
-    return action_properties
+    selection = select('What action', ['Email', 'Cache'])
+    action_type = getattr(ActionType, selection)
+    action_properties = ui_get_email_properties() if action_type == ActionType.Email else None
+    return action_type, action_properties
 
 
 def ui_show():
