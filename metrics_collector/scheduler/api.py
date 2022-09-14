@@ -42,9 +42,16 @@ class EmailAction(BaseAction):
     subject: str
     body: str
 
+    def __format__(self, format_spec):
+        s = self.shorten
+        return f'{s(self.to_email)}, {s(self.subject)}'
 
+
+@dataclasses.dataclass
 class CacheAction(BaseAction):
-    pass
+
+    def __format__(self, format_spec):
+        return ''
 
 
 class MyScheduler(AsyncService):
