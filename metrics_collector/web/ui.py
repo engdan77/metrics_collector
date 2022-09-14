@@ -107,7 +107,7 @@ def scheduler_config_file() -> Path:
     return Path(f'{c}/scheduler.json')
 
 
-def get_scheduler_config() -> list:
+def get_scheduler_config() -> list[dict]:
     f = scheduler_config_file()
     if f.exists():
         return json.loads(f.read_text())
@@ -169,10 +169,6 @@ def ui_add_schedule():
 
 def ui_remove_schedule():
     """This is UI for removing existing scheduled job"""
-    ...
-
-
-def ui_remove_schedule():
     def delete_row(choice, row):
         logger.info(f'deleting item {row} from schedules')
         config = get_scheduler_config()
@@ -182,14 +178,22 @@ def ui_remove_schedule():
         clear()
         put_text(f'Removed {row} from scheduled jobs')
 
-    table_rows = [('#', 'Service', 'From', 'To', 'Action', '')]
+    table_rows = [('#', 'Service', 'From', 'To', 'Action', 'Schedule', '')]
     # TODO: Add scheduled job - when
     for i, item in enumerate(get_scheduler_config()):
-        dag_name, from_, to_, _, action_container = item
-        action = action_container['action']
-        action = f'{action}: {action_container["to_email"]}' if action == 'Email' else action
-        table_rows.append((i, dag_name, from_, to_, action, put_buttons(['delete'], onclick=partial(delete_row, row=i))))
+        dag_name, from_, to_, _extract_param, schedule_param, action_type, action_data = item.values()
+        table_rows.append((i, dag_name, from_, to_, action_type, f'{schedule_param}', f'{to_base_action(action_data)}', put_buttons(['delete'], onclick=partial(delete_row, row=i))))
     put_table(table_rows)
+
+
+def to_base_action(input_data: dict, base_class=BaseAction):
+    obj = None
+    for cls in base_class.__subclasses__():
+        try:
+            obj = cls(**input_data)
+        except TypeError:
+            continue
+    return obj
 
 
 def ui_get_email_properties() -> EmailAction:
