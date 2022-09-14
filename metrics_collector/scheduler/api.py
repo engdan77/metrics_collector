@@ -1,3 +1,5 @@
+import dataclasses
+from enum import Enum
 from typing import Optional, List, Dict, Tuple, TypedDict, Annotated
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
@@ -9,10 +11,15 @@ from loguru import logger
 
 # Used to overcome "found in sys.modules after import of package .."
 from metrics_collector.helper import import_item
-from metrics_collector.scheduler.base import AsyncService
+from metrics_collector.scheduler.base import AsyncService, BaseAction
 
 if not sys.warnoptions:  # allow overriding with `-W` option
     warnings.filterwarnings("ignore", category=RuntimeWarning, module="runpy")
+
+
+class ActionType(str, Enum):
+    Email = 'Email'
+    Cache = 'Cache'
 
 
 class ScheduleParams(TypedDict):
@@ -26,6 +33,18 @@ class ScheduleParams(TypedDict):
     day_of_week: int | str
     hour: int | str
     minute: int | str
+
+
+@dataclasses.dataclass
+class EmailAction(BaseAction):
+    """Used as part of the schedule configuration"""
+    to_email: str
+    subject: str
+    body: str
+
+
+class CacheAction(BaseAction):
+    pass
 
 
 class MyScheduler(AsyncService):
