@@ -11,7 +11,8 @@ from loguru import logger
 
 # Used to overcome "found in sys.modules after import of package .."
 from metrics_collector.helper import import_item
-from metrics_collector.scheduler.base import AsyncService, BaseAction
+from metrics_collector.scheduler.base import AsyncService, BaseAction, BaseScheduleParams
+from metrics_collector.utils import shorten
 
 if not sys.warnoptions:  # allow overriding with `-W` option
     warnings.filterwarnings("ignore", category=RuntimeWarning, module="runpy")
@@ -22,7 +23,8 @@ class ActionType(str, Enum):
     Cache = 'Cache'
 
 
-class ScheduleParams(TypedDict):
+@dataclasses.dataclass
+class ScheduleParams(BaseScheduleParams):
     """
     Typing for Schedule Params.
     More info here https://apscheduler.readthedocs.io/en/3.x/modules/triggers/cron.html
@@ -34,6 +36,9 @@ class ScheduleParams(TypedDict):
     hour: int | str
     minute: int | str
 
+    def __format__(self, format_spec):
+        return f"Y:{self.year} M:{self.month} D:{self.day} DoW: {self.day_of_week} H:{self.hour} M:{self.minute}"
+
 
 @dataclasses.dataclass
 class EmailAction(BaseAction):
@@ -43,7 +48,7 @@ class EmailAction(BaseAction):
     body: str
 
     def __format__(self, format_spec):
-        s = self.shorten
+        s = shorten
         return f'{s(self.to_email)}, {s(self.subject)}'
 
 

@@ -13,7 +13,7 @@ from pywebio.output import put_html, put_processbar, set_processbar, put_text, c
 from metrics_collector.orchestrator.generic import Orchestrator, ClassType, ProgressBar
 from loguru import logger
 
-from metrics_collector.scheduler.base import BaseAction
+from metrics_collector.scheduler.base import BaseAction, BaseScheduleParams
 from metrics_collector.utils import normalize_date, get_cache_dir
 from metrics_collector.scheduler.api import ScheduleParams, MyScheduler, EmailAction, CacheAction, ActionType
 
@@ -182,11 +182,11 @@ def ui_remove_schedule():
     # TODO: Add scheduled job - when
     for i, item in enumerate(get_scheduler_config()):
         dag_name, from_, to_, _extract_param, schedule_param, action_type, action_data = item.values()
-        table_rows.append((i, dag_name, from_, to_, action_type, f'{schedule_param}', f'{to_base_action(action_data)}', put_buttons(['delete'], onclick=partial(delete_row, row=i))))
+        table_rows.append((i, dag_name, from_, to_, action_type, f'{to_base_class(schedule_param, BaseScheduleParams)}', f'{to_base_class(action_data, BaseAction)}', put_buttons(['delete'], onclick=partial(delete_row, row=i))))
     put_table(table_rows)
 
 
-def to_base_action(input_data: dict, base_class=BaseAction):
+def to_base_class(input_data: dict, base_class=BaseAction):
     obj = None
     for cls in base_class.__subclasses__():
         try:

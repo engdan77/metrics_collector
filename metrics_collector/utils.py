@@ -49,3 +49,7 @@ def get_days_between(from_: str | datetime.date, to_: str | datetime.date, as_te
 
 def get_cache_dir():
     return os.getenv('CACHE_DIR', None) or user_data_dir(__package__)
+
+
+def shorten(input_data, letters=8):
+    return f'{input_data[:letters]}...' if len(input_data) >= letters else input_data
