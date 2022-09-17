@@ -51,6 +51,9 @@ class ScheduleConfig:
     action_type: ActionType
     action_data: BaseAction
 
+    def get_action_class(self):
+        # TODO: add logic to get ActionClass based in action_type and naming + inheritance
+
 
 @dataclasses.dataclass
 class EmailAction(BaseAction):
@@ -142,6 +145,7 @@ class MyScheduler(AsyncService):
                 logger.warning(f'Schedule {config_item} bad due to {error_msg}')
                 continue
             ...
+        # TODO: call method of ActionType to get method to be scheduled
 
 
 def scheduler_config_file() -> Path:
