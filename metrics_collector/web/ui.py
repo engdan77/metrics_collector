@@ -1,21 +1,20 @@
-import dataclasses
 import datetime
 import itertools
 import json
 import re
 from functools import partial
-from pathlib import Path
-from typing import Iterable, Type, Annotated, Protocol
+from typing import Type, Annotated
 import pywebio.input
 from parsedatetime import Calendar
-from pywebio.input import input, radio, select, input_group, checkbox
+from pywebio.input import input, radio, select, input_group
 from pywebio.output import put_html, put_processbar, set_processbar, put_text, clear, put_table, put_buttons
-from metrics_collector.orchestrator.generic import Orchestrator, ClassType, ProgressBar
+from metrics_collector.orchestrator.generic import Orchestrator, ProgressBar
 from loguru import logger
 
 from metrics_collector.scheduler.base import BaseAction, BaseScheduleParams
-from metrics_collector.utils import normalize_date, get_cache_dir
-from metrics_collector.scheduler.api import ScheduleParams, MyScheduler, EmailAction, CacheAction, ActionType
+from metrics_collector.utils import normalize_date
+from metrics_collector.scheduler.api import ScheduleParams, MyScheduler, EmailAction, ActionType, \
+    scheduler_config_file, get_scheduler_config, ScheduleConfig, save_scheduler_config
 
 Params = dict[Annotated[str, "param name"], Annotated[str, "value"]]
 
@@ -100,44 +99,6 @@ def get_extract_params(dag_name, orchestrator):
                                               None):
             extract_params = ui_get_extract_params(dag_name, orchestrator)
     return extract_params
-
-
-def scheduler_config_file() -> Path:
-    c = get_cache_dir()
-    return Path(f'{c}/scheduler.json')
-
-
-def get_scheduler_config() -> list[dict]:
-    f = scheduler_config_file()
-    if f.exists():
-        return json.loads(f.read_text())
-
-
-@dataclasses.dataclass
-class ScheduleConfig:
-    dag_name: str
-    from_: str
-    to_: str
-    extract_params: dict
-    schedule_params: ScheduleParams
-    action_type: ActionType
-    action_data: BaseAction
-
-
-def save_scheduler_config(schedule_config: ScheduleConfig):
-    config = []
-    if current_config := get_scheduler_config():
-        config = current_config
-    config.append(dataclasses.asdict(schedule_config))
-    c = scheduler_config_file()
-    c.write_text(json.dumps(config, indent=4))
-    logger.info(f'saving configuration {c.as_posix()}')
-
-
-def load_scheduler_config() -> list[ScheduleConfig]:
-    c = scheduler_config_file()
-    j = c.read_text()
-    return [ScheduleConfig(**config_item) for config_item in json.loads(j)]
 
 
 def ui_get_schedule_options() -> ScheduleParams:

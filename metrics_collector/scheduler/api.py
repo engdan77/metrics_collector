@@ -1,10 +1,11 @@
 import dataclasses
+import json
 from enum import Enum
+from pathlib import Path
 from typing import Optional, List, Dict, Tuple, TypedDict, Annotated
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
 from asyncio.events import AbstractEventLoop
-import importlib
 import sys
 import warnings
 from loguru import logger
@@ -12,15 +13,10 @@ from loguru import logger
 # Used to overcome "found in sys.modules after import of package .."
 from metrics_collector.helper import import_item
 from metrics_collector.scheduler.base import AsyncService, BaseAction, BaseScheduleParams
-from metrics_collector.utils import shorten
+from metrics_collector.utils import shorten, get_cache_dir
 
 if not sys.warnoptions:  # allow overriding with `-W` option
     warnings.filterwarnings("ignore", category=RuntimeWarning, module="runpy")
-
-
-class ActionType(str, Enum):
-    Email = 'Email'
-    Cache = 'Cache'
 
 
 @dataclasses.dataclass
@@ -40,6 +36,22 @@ class ScheduleParams(BaseScheduleParams):
         return f"Y:{self.year} M:{self.month} D:{self.day} DoW: {self.day_of_week} H:{self.hour} M:{self.minute}"
 
 
+class ActionType(str, Enum):
+    Email = 'Email'
+    Cache = 'Cache'
+
+
+@dataclasses.dataclass
+class ScheduleConfig:
+    dag_name: str
+    from_: str
+    to_: str
+    extract_params: dict
+    schedule_params: ScheduleParams
+    action_type: ActionType
+    action_data: BaseAction
+
+
 @dataclasses.dataclass
 class EmailAction(BaseAction):
     """Used as part of the schedule configuration"""
@@ -51,12 +63,18 @@ class EmailAction(BaseAction):
         s = shorten
         return f'{s(self.to_email)}, {s(self.subject)}'
 
+    def run(self):
+        logger.info(f'Sending email to {self.to_email}')
+
 
 @dataclasses.dataclass
 class CacheAction(BaseAction):
 
     def __format__(self, format_spec):
         return ''
+
+    def run(self):
+        logger.info('Execute caching')
 
 
 class MyScheduler(AsyncService):
@@ -108,3 +126,46 @@ class MyScheduler(AsyncService):
     def add_initials(self, initials):
         for _func, _type, kwargs in initials:
             self.add_task(_func, _type, **kwargs)
+
+    def remove_current_scheduled(self):
+        logger.debug(f'Removing existing jobs')
+        for job in self.scheduler.get_jobs():
+            job.remove()
+
+    def refresh_scheduled_jobs(self):
+        self.remove_current_scheduled()
+        config = load_scheduler_config()
+        for config_params in config:
+            config_item = ScheduleConfig(config_params)
+            okay, error_msg = self.verify_job(config_item.schedule_params)
+            if not okay:
+                logger.warning(f'Schedule {config_item} bad due to {error_msg}')
+                continue
+            ...
+
+
+def scheduler_config_file() -> Path:
+    c = get_cache_dir()
+    return Path(f'{c}/scheduler.json')
+
+
+def get_scheduler_config() -> list[dict]:
+    f = scheduler_config_file()
+    if f.exists():
+        return json.loads(f.read_text())
+
+
+def save_scheduler_config(schedule_config: ScheduleConfig):
+    config = []
+    if current_config := get_scheduler_config():
+        config = current_config
+    config.append(dataclasses.asdict(schedule_config))
+    c = scheduler_config_file()
+    c.write_text(json.dumps(config, indent=4))
+    logger.info(f'saving configuration {c.as_posix()}')
+
+
+def load_scheduler_config() -> list[ScheduleConfig]:
+    c = scheduler_config_file()
+    j = c.read_text()
+    return [ScheduleConfig(**config_item) for config_item in json.loads(j)]
