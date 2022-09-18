@@ -11,10 +11,9 @@ from pywebio.output import put_html, put_processbar, set_processbar, put_text, c
 from metrics_collector.orchestrator.generic import Orchestrator, ProgressBar
 from loguru import logger
 
-from metrics_collector.scheduler.base import BaseAction, BaseScheduleParams
+from metrics_collector.scheduler.base import BaseAction, BaseScheduleParams, ActionType
 from metrics_collector.utils import normalize_date
-from metrics_collector.scheduler.api import ScheduleParams, MyScheduler, EmailAction, ActionType, \
-    scheduler_config_file, get_scheduler_config, ScheduleConfig, save_scheduler_config
+from metrics_collector.scheduler.api import ScheduleParams, MyScheduler, EmailAction, scheduler_config_file, get_scheduler_config, ScheduleConfig, save_scheduler_config
 
 Params = dict[Annotated[str, "param name"], Annotated[str, "value"]]
 
@@ -125,7 +124,7 @@ def ui_add_schedule():
     schedule_config = ScheduleConfig(dag_name, from_, to_, extract_params, schedule_params, action_type, action_properties)
     save_scheduler_config(schedule_config)
     clear()
-    put_text('Scheduler configuration updated....')
+    put_text('Scheduler configuration updated, restarting schedules ...')
 
 
 def ui_remove_schedule():

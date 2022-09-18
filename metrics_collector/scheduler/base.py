@@ -1,6 +1,12 @@
 import dataclasses
+from enum import Enum
 from typing import Protocol
 from abc import ABC, abstractmethod
+
+
+class ActionType(str, Enum):
+    Email = 'Email'
+    Cache = 'Cache'
 
 
 class AsyncService(Protocol):
@@ -8,9 +14,10 @@ class AsyncService(Protocol):
         ...
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class BaseAction(ABC):
-    """Used for scheduling report to e.g. know whether to email to cache"""
+
+    """Used for scheduling report to e.g. know whether to email to cache, add required fields to abstract classes"""
     def __repr__(self):
         return str(self.__dict__)
 
@@ -19,9 +26,17 @@ class BaseAction(ABC):
         """Implement logic for executing this action"""
         ...
 
+    @abstractmethod
+    def action_type(self) -> ActionType:
+        """Return what of what type this action is"""
+        ...
+
 
 @dataclasses.dataclass
 class BaseScheduleParams(ABC):
     """Baseclass for scheduling parameters"""
     def __format__(self, format_spec):
         return str(self.__dict__)
+
+
+

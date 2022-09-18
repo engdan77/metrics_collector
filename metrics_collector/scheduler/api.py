@@ -1,8 +1,7 @@
 import dataclasses
 import json
-from enum import Enum
 from pathlib import Path
-from typing import Optional, List, Dict, Tuple, TypedDict, Annotated
+from typing import Optional, List, Dict, Tuple, Annotated
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
 from asyncio.events import AbstractEventLoop
@@ -12,7 +11,7 @@ from loguru import logger
 
 # Used to overcome "found in sys.modules after import of package .."
 from metrics_collector.helper import import_item
-from metrics_collector.scheduler.base import AsyncService, BaseAction, BaseScheduleParams
+from metrics_collector.scheduler.base import AsyncService, BaseAction, BaseScheduleParams, ActionType
 from metrics_collector.utils import shorten, get_cache_dir
 
 if not sys.warnoptions:  # allow overriding with `-W` option
@@ -36,11 +35,6 @@ class ScheduleParams(BaseScheduleParams):
         return f"Y:{self.year} M:{self.month} D:{self.day} DoW: {self.day_of_week} H:{self.hour} M:{self.minute}"
 
 
-class ActionType(str, Enum):
-    Email = 'Email'
-    Cache = 'Cache'
-
-
 @dataclasses.dataclass
 class ScheduleConfig:
     dag_name: str
@@ -52,6 +46,7 @@ class ScheduleConfig:
     action_data: BaseAction
 
     def get_action_class(self):
+        ...
         # TODO: add logic to get ActionClass based in action_type and naming + inheritance
 
 
@@ -69,6 +64,10 @@ class EmailAction(BaseAction):
     def run(self):
         logger.info(f'Sending email to {self.to_email}')
 
+    @property
+    def action_type(self) -> ActionType:
+        return ActionType.Email
+
 
 @dataclasses.dataclass
 class CacheAction(BaseAction):
@@ -79,8 +78,14 @@ class CacheAction(BaseAction):
     def run(self):
         logger.info('Execute caching')
 
+    @property
+    def action_type(self) -> ActionType:
+        return ActionType.Cache
+
 
 class MyScheduler(AsyncService):
+    instance = None
+
     def __init__(
         self,
         initials: List[Tuple[str, str, Dict]],
@@ -95,6 +100,7 @@ class MyScheduler(AsyncService):
         else:
             self.queue = asyncio.Queue()
 
+        self.__class__.instance = self  # Follows singleton pattern
         self.add_initials(initials)
 
     def start(self):
