@@ -84,11 +84,11 @@ class CacheAction(BaseAction):
 
 
 class MyScheduler(AsyncService):
-    instance = None
+    _instance = None
 
     def __init__(
         self,
-        initials: List[Tuple[str, str, Dict]],
+        initials: List[Tuple[str, str, Dict]] | None = None,
         schedule_queue: Optional[asyncio.Queue] = None,
         loop: AbstractEventLoop = None
     ) -> None:
@@ -99,9 +99,15 @@ class MyScheduler(AsyncService):
             self.queue = schedule_queue
         else:
             self.queue = asyncio.Queue()
+        self.initials = initials
+        if initials:
+            self.add_initials(self.initials)
 
-        self.__class__.instance = self  # Follows singleton pattern
-        self.add_initials(initials)
+    def __new__(cls, *args, **kwargs):
+        """Singleton pattern"""
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
     def start(self):
         if self.loop:

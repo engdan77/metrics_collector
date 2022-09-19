@@ -16,7 +16,7 @@ import logging
 
 def start_initial_loop():
     scheduler = MyScheduler(initials=default_initial_scheduled_tasks)
-    web_server = WebServer((scheduler,))  # send services to be started with uvicorn
+    WebServer((scheduler,))  # send services to be started with uvicorn
 
 
 def get_data(number_of_days=1800):
