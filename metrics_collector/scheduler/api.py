@@ -11,7 +11,7 @@ from loguru import logger
 
 # Used to overcome "found in sys.modules after import of package .."
 from metrics_collector.helper import import_item
-from metrics_collector.scheduler.base import AsyncService, BaseAction, BaseScheduleParams, ActionType
+from metrics_collector.scheduler.base import BaseAction, BaseScheduleParams, ActionType
 from metrics_collector.utils import shorten, get_cache_dir
 
 if not sys.warnoptions:  # allow overriding with `-W` option
@@ -83,7 +83,7 @@ class CacheAction(BaseAction):
         return ActionType.Cache
 
 
-class MyScheduler(AsyncService):
+class MyScheduler:
     _instance = None
 
     def __init__(
@@ -92,6 +92,7 @@ class MyScheduler(AsyncService):
         schedule_queue: Optional[asyncio.Queue] = None,
         loop: AbstractEventLoop = None
     ) -> None:
+        self.reload_id = 'reload_on_config_update'
         self.loop = loop
         self.scheduler = AsyncIOScheduler()
 
@@ -102,6 +103,8 @@ class MyScheduler(AsyncService):
         self.initials = initials
         if initials:
             self.add_initials(self.initials)
+        self.current_config = load_scheduler_config()
+        self._running = None
 
     def __new__(cls, *args, **kwargs):
         """Singleton pattern"""
@@ -110,6 +113,8 @@ class MyScheduler(AsyncService):
         return cls._instance
 
     def start(self):
+        self._running = True
+        self.scheduler.add_job(self.reload_on_config_update, 'interval', seconds=10, id=self.reload_id)
         if self.loop:
             self.loop.create_task(self.start_async())
         else:
@@ -130,7 +135,11 @@ class MyScheduler(AsyncService):
     async def start_async(self):
         self.scheduler.start()
 
-    def add_task(self, _func, _type, _args=[], _kwargs={}, **kwargs):
+    def add_task(self, _func, _type, _args=None, _kwargs=None, **kwargs):
+        if _kwargs is None:
+            _kwargs = {}
+        if _args is None:
+            _args = []
         logger.info(f"adding scheduling for {_func} with {kwargs}")
         f = import_item(_func)
         # add job function f, calling with _args and _kwargs while **kwargs for trigger options
@@ -145,12 +154,13 @@ class MyScheduler(AsyncService):
     def remove_current_scheduled(self):
         logger.debug(f'Removing existing jobs')
         for job in self.scheduler.get_jobs():
+            if job.id == self.reload_id:
+                continue
             job.remove()
 
     def refresh_scheduled_jobs(self):
         self.remove_current_scheduled()
-        config = load_scheduler_config()
-        for config_params in config:
+        for config_params in self.current_config:
             config_item = ScheduleConfig(config_params)
             okay, error_msg = self.verify_job(config_item.schedule_params)
             if not okay:
@@ -158,6 +168,16 @@ class MyScheduler(AsyncService):
                 continue
             ...
         # TODO: call method of ActionType to get method to be scheduled
+
+    def stop(self):
+        self._running = False
+
+    async def reload_on_config_update(self):
+        new_config = load_scheduler_config()
+        if not new_config == self.current_config:
+            logger.info('detected new config and reloading')
+            self.refresh_scheduled_jobs()
+        self.current_config = new_config
 
 
 def scheduler_config_file() -> Path:

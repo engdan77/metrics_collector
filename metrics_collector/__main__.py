@@ -1,3 +1,4 @@
+import asyncio
 import os
 import sys
 from pathlib import Path
@@ -21,7 +22,7 @@ def start_initial_loop():
 
 def get_data(number_of_days=1800):
     # ah = AppleHealthExtract('../data/export.zip')
-    g = GarminExtract(os.getenv('USERNAME'), os.getenv('PASSWORD'))
+    g = GarminExtract(GarminExtractParameters(os.getenv('USERNAME'), os.getenv('PASSWORD')))
 
     for i, day in enumerate(get_past_days(number_of_days, offset=0)):
         for f in (g, ah):
