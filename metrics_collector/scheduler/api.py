@@ -45,6 +45,11 @@ class ScheduleConfig:
     action_type: ActionType
     action_data: BaseAction
 
+    def __init__(self):
+        """Allows to instantiate object based on input kwargs"""
+        ...
+        # TODO: add instantiate based on dict
+
     def get_action_class(self):
         ...
         # TODO: add logic to get ActionClass based in action_type and naming + inheritance
@@ -104,6 +109,7 @@ class MyScheduler:
         if initials:
             self.add_initials(self.initials)
         self.current_config = load_scheduler_config()
+        self.refresh_scheduled_jobs()
         self._running = None
 
     def __new__(cls, *args, **kwargs):
@@ -161,10 +167,9 @@ class MyScheduler:
     def refresh_scheduled_jobs(self):
         self.remove_current_scheduled()
         for config_params in self.current_config:
-            config_item = ScheduleConfig(config_params)
-            okay, error_msg = self.verify_job(config_item.schedule_params)
+            okay, error_msg = self.verify_job(config_params.schedule_params)
             if not okay:
-                logger.warning(f'Schedule {config_item} bad due to {error_msg}')
+                logger.warning(f'Schedule {config_params} bad due to {error_msg}')
                 continue
             ...
         # TODO: call method of ActionType to get method to be scheduled
@@ -204,4 +209,5 @@ def save_scheduler_config(schedule_config: ScheduleConfig):
 def load_scheduler_config() -> list[ScheduleConfig]:
     c = scheduler_config_file()
     j = c.read_text()
+    # TODO: assure config items get properly instantiated
     return [ScheduleConfig(**config_item) for config_item in json.loads(j)]
