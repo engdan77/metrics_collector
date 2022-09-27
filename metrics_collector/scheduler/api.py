@@ -1,7 +1,7 @@
 import dataclasses
 import json
 from pathlib import Path
-from typing import Optional, List, Dict, Tuple, Annotated
+from typing import Optional, List, Dict, Tuple, Annotated, Type
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
 from asyncio.events import AbstractEventLoop
@@ -34,6 +34,9 @@ class ScheduleParams(BaseScheduleParams):
     def __format__(self, format_spec):
         return f"Y:{self.year} M:{self.month} D:{self.day} DoW: {self.day_of_week} H:{self.hour} M:{self.minute}"
 
+    def asdict(self):
+        return dataclasses.asdict(self)
+
 
 @dataclasses.dataclass
 class ScheduleConfig:
@@ -41,17 +44,25 @@ class ScheduleConfig:
     from_: str
     to_: str
     extract_params: dict
-    schedule_params: ScheduleParams
-    action_type: ActionType
-    action_data: BaseAction
+    schedule_params: ScheduleParams | dict
+    action_type: ActionType | str  # being Enum or string
+    action_data: BaseAction | dict  # being objected of type BaseAction
 
-    def __init__(self):
-        """Allows to instantiate object based on input kwargs"""
-        ...
-        # TODO: add instantiate based on dict
+    def __post_init__(self):
+        """Instantiate using dict coming from configuration and set action_data"""
+        if not issubclass(self.action_type.__class__, ActionType):
+            self.action_type = getattr(ActionType, self.action_type)
+        if not issubclass(self.action_data.__class__, BaseAction):
+            cls = self.get_action_class()
+            self.action_data = cls(**self.action_data)
+        if not issubclass(self.schedule_params.__class__, ScheduleParams):
+            self.schedule_params = ScheduleParams(**self.schedule_params)
 
-    def get_action_class(self):
-        ...
+    def get_action_class(self) -> Type[BaseAction]:
+        """Get subclass based on Enum of field action_type"""
+        for subclass in BaseAction.__subclasses__():
+            if subclass.action_type() == self.action_type:
+                return subclass
         # TODO: add logic to get ActionClass based in action_type and naming + inheritance
 
 
@@ -69,8 +80,8 @@ class EmailAction(BaseAction):
     def run(self):
         logger.info(f'Sending email to {self.to_email}')
 
-    @property
-    def action_type(self) -> ActionType:
+    @classmethod
+    def action_type(cls) -> ActionType:
         return ActionType.Email
 
 
@@ -83,8 +94,8 @@ class CacheAction(BaseAction):
     def run(self):
         logger.info('Execute caching')
 
-    @property
-    def action_type(self) -> ActionType:
+    @classmethod
+    def action_type(cls) -> ActionType:
         return ActionType.Cache
 
 
@@ -130,7 +141,7 @@ class MyScheduler:
     def verify_job(cls, schedule_params: ScheduleParams, temp_scheduler=AsyncIOScheduler) -> tuple[Annotated[bool, "success"], Annotated[str, "message"] | None]:
         """Method for verifying schedule params"""
         try:
-            job = temp_scheduler().add_job(lambda: None, 'cron', **schedule_params)
+            job = temp_scheduler().add_job(lambda: None, 'cron', **schedule_params.asdict())
         except ValueError as e:
             logger.warning(f'wrong schedule param {e}')
             return False, str(e)
@@ -164,13 +175,16 @@ class MyScheduler:
                 continue
             job.remove()
 
-    def refresh_scheduled_jobs(self):
+    def refresh_scheduled_jobs(self, trigger_type='interval'):
         self.remove_current_scheduled()
         for config_params in self.current_config:
             okay, error_msg = self.verify_job(config_params.schedule_params)
             if not okay:
                 logger.warning(f'Schedule {config_params} bad due to {error_msg}')
                 continue
+            ...
+            logger.debug(f'Adding schedule for {config_params.action_type} on {config_params.schedule_params}')
+            self.add_task(config_params.action_data.run, 'cron', **config_params.schedule_params.asdict())
             ...
         # TODO: call method of ActionType to get method to be scheduled
 
