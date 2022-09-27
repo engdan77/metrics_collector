@@ -26,8 +26,8 @@ class BaseAction(ABC):
         """Implement logic for executing this action"""
         ...
 
-    @abstractmethod
-    def action_type(self) -> ActionType:
+    @classmethod
+    def action_type(cls) -> ActionType:
         """Return what of what type this action is"""
         ...
 
