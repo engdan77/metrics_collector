@@ -1,7 +1,10 @@
+from __future__ import annotations
 import dataclasses
 import json
+from abc import ABC, abstractmethod
+from enum import Enum
 from pathlib import Path
-from typing import Optional, List, Dict, Tuple, Annotated, Type
+from typing import Optional, List, Dict, Tuple, Annotated, Protocol, Type
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
 from asyncio.events import AbstractEventLoop
@@ -11,11 +14,22 @@ from loguru import logger
 
 # Used to overcome "found in sys.modules after import of package .."
 from metrics_collector.helper import import_item
-from metrics_collector.scheduler.base import BaseAction, BaseScheduleParams, ActionType
 from metrics_collector.utils import shorten, get_cache_dir
 
 if not sys.warnoptions:  # allow overriding with `-W` option
     warnings.filterwarnings("ignore", category=RuntimeWarning, module="runpy")
+
+
+class ActionType(str, Enum):
+    Email = 'Email'
+    Cache = 'Cache'
+
+
+@dataclasses.dataclass
+class BaseScheduleParams(ABC):
+    """Baseclass for scheduling parameters"""
+    def __format__(self, format_spec):
+        return str(self.__dict__)
 
 
 @dataclasses.dataclass
@@ -66,6 +80,24 @@ class ScheduleConfig:
         # TODO: add logic to get ActionClass based in action_type and naming + inheritance
 
 
+@dataclasses.dataclass(kw_only=True)
+class BaseAction(ABC):
+
+    """Used for scheduling report to e.g. know whether to email to cache, add required fields to abstract classes"""
+    def __repr__(self):
+        return str(self.__dict__)
+
+    @abstractmethod
+    def run(self, schedule_config: ScheduleConfig):
+        """Implement logic for executing this action"""
+        ...
+
+    @classmethod
+    def action_type(cls) -> ActionType:
+        """Return what of what type this action is"""
+        ...
+
+
 @dataclasses.dataclass
 class EmailAction(BaseAction):
     """Used as part of the schedule configuration"""
@@ -77,7 +109,7 @@ class EmailAction(BaseAction):
         s = shorten
         return f'{s(self.to_email)}, {s(self.subject)}'
 
-    def run(self):
+    def run(self, schedule_config: ScheduleConfig):
         logger.info(f'Sending email to {self.to_email}')
 
     @classmethod
@@ -91,7 +123,7 @@ class CacheAction(BaseAction):
     def __format__(self, format_spec):
         return ''
 
-    def run(self):
+    def run(self, schedule_config: ScheduleConfig):
         logger.info('Execute caching')
 
     @classmethod
@@ -184,7 +216,7 @@ class MyScheduler:
                 continue
             ...
             logger.debug(f'Adding schedule for {config_params.action_type} on {config_params.schedule_params}')
-            self.add_task(config_params.action_data.run, 'cron', **config_params.schedule_params.asdict())
+            self.add_task(config_params.action_data.run, 'cron', (config_params,), **config_params.schedule_params.asdict())
             ...
         # TODO: call method of ActionType to get method to be scheduled
 
@@ -225,3 +257,8 @@ def load_scheduler_config() -> list[ScheduleConfig]:
     j = c.read_text()
     # TODO: assure config items get properly instantiated
     return [ScheduleConfig(**config_item) for config_item in json.loads(j)]
+
+
+class AsyncService(Protocol):
+    def start(self):
+        ...
