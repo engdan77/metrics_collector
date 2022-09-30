@@ -7,7 +7,7 @@ from uvicorn_loguru_integration import run_uvicorn_loguru
 from fastapi import FastAPI
 from pywebio.platform.fastapi import asgi_app
 
-from metrics_collector.scheduler.base import AsyncService
+from metrics_collector.scheduler.api import AsyncService
 from metrics_collector.web.rest import graph_router
 from metrics_collector.web.ui import ui_show, ui_add_schedule, ui_remove_schedule
 
