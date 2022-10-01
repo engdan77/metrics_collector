@@ -1,0 +1,76 @@
+classDiagram
+
+    BaseAction <|-- EmailAction
+    BaseAction <|-- CacheAction
+    BaseAction o-- Orchestration
+
+    BaseScheduleParams <|-- ScheduleParams
+    Enum <|-- ActionType
+
+    EmailAction o-- ActionType
+    CacheAction o-- ActionType
+
+    ScheduleConfig o-- ScheduleParams
+    ScheduleConfig o-- ActionType
+    ScheduleConfig o-- BaseAction
+
+
+    class Orchestration {
+    +get_extract_objects(extract_params)
+    +process_dates(...,from ,to)
+    +get_transform_object(...)
+    +get_all_graphs(..., 'png')
+    }
+
+    class ScheduleConfig {
+    <<dataclass>>
+    +dag_name: str
+    +from_: str
+    +to_: str
+    +extract_params: dict
+    +schedule_params: ScheduleParams
+    +action_type: ActionType
+    +action_data: BaseAction
+    __post_init__()
+    }
+
+    class ActionType {
+    <<Enum>>
+        +Email
+        +Cache
+    }
+
+    class BaseAction {
+        <<abstract>>
+        -orchestration
+        +action_type()
+        +run()
+    }
+
+    class EmailAction {
+        +to_email: str
+        +subject: str
+        +body: str
+        +action_type()
+        +run()
+    }
+
+    class CacheAction {
+        +action_type()
+        +run()
+    }
+
+    class BaseScheduleParams {
+        <<abstract>>
+        +__format__()
+    }
+
+    class ScheduleParams {
+        +year: int | str
+        +month: int | str
+        +day: int | str
+        +day_of_week: int | str
+        +hour: int | str
+        +minute: int | str
+        +__format()__
+    }
