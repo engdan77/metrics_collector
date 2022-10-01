@@ -4,6 +4,8 @@ from urllib.parse import urlparse, urljoin
 import fs
 from furl import furl
 
+from metrics_collector.exceptions import MetricsExtractException
+
 
 def uri_loader(_, uri_string) -> bytes:  # discard 1st arg being self
     uri_parts = furl(uri_string)
@@ -12,7 +14,10 @@ def uri_loader(_, uri_string) -> bytes:  # discard 1st arg being self
     filename = os.path.basename(p)
     uri_parts.path = dirname
     with fs.open_fs(uri_parts.tostr()) as p:
-        return p.open(filename, 'rb').read()
+        try:
+            return p.open(filename, 'rb').read()
+        except fs.errors.RemoteConnectionError as e:
+            raise MetricsExtractException(f'Unable to extract data: {e}')
 
 
 if __name__ == '__main__':
