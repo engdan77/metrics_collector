@@ -14,6 +14,7 @@ from loguru import logger
 
 # Used to overcome "found in sys.modules after import of package .."
 from metrics_collector.helper import import_item
+from metrics_collector.orchestrator.generic import Orchestrator
 from metrics_collector.utils import shorten, get_cache_dir
 
 if not sys.warnoptions:  # allow overriding with `-W` option
@@ -82,10 +83,28 @@ class ScheduleConfig:
 
 @dataclasses.dataclass(kw_only=True)
 class BaseAction(ABC):
-
     """Used for scheduling report to e.g. know whether to email to cache, add required fields to abstract classes"""
+
     def __repr__(self):
         return str(self.__dict__)
+
+    def _get_graphs(self, c: ScheduleConfig):
+        """Used by concrete Action classes when run"""
+        # TODO: add orchestration logic
+        o = Orchestrator()  # instantiate orchestrator
+        dag_name, from_, to_ = (c.dag_name, c.from_, c.to_)
+        extract_params_definition = o.get_extract_params_def(c.dag_name)  # OPTIONAL: dynamically get required parameters
+        extract_params = c.extract_params
+        extract_params = o.get_stored_params(dag_name)  # OPTIONAL: method allow get previous cached data
+        extract_objects = o.get_extract_objects(dag_name,
+                                                extract_params)  # EXTRACT: required with extract_params as dict
+        pb = my_progress_bar()  # OPTIONAL: callback function presenting progress between 0.0 to 1.0
+        o.process_dates(extract_objects, from_, to_, progress_bar=pb)  # processing those dates
+        transform_object = o.get_transform_object(dag_name,
+                                                  extract_objects)  # TRANSFORM: important to be used next step
+        for graph_data in o.get_all_graphs(from_, to_, dag_name, transform_object,
+                                           'png'):  # LOAD: used to get graph results
+            do_something_with_graph_data(graph_data)  # custom handler for handling e.g. png or html
 
     @abstractmethod
     def run(self, schedule_config: ScheduleConfig):
@@ -111,6 +130,7 @@ class EmailAction(BaseAction):
 
     def run(self, schedule_config: ScheduleConfig):
         logger.info(f'Sending email to {self.to_email}')
+        # TODO: add implementation of run
 
     @classmethod
     def action_type(cls) -> ActionType:
