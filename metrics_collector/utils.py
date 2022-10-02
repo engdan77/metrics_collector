@@ -15,7 +15,7 @@ def get_past_days(number_days: int = 1, offset=0) -> Generator:
         yield x.strftime('%Y-%m-%d')
 
 
-def normalize_period(from_: date | str, to_: date | str, fmt: str = '%Y-%m-%d') -> list[date, date]:
+def normalize_period(from_: date | str, to_: date | str, fmt: str = '%Y-%m-%d') -> tuple[date, date]:
     try:
         from_ = datetime.datetime.strptime(from_, fmt)
         to_ = datetime.datetime.strptime(to_, fmt)
@@ -23,6 +23,8 @@ def normalize_period(from_: date | str, to_: date | str, fmt: str = '%Y-%m-%d') 
         pass
     except ValueError:
         c = Calendar()  # attempt parse as human text e.g. "6 months ago"
+        from_ = from_.isoformat() if isinstance(from_, datetime.datetime) else from_
+        to_ = from_.isoformat() if isinstance(to_, datetime.datetime) else to_
         from_, to_ = date(*c.parse(from_)[0][:3]), date(*c.parse(to_)[0][:3])
     return from_, to_
 
