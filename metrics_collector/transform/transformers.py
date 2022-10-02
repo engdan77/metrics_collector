@@ -51,8 +51,8 @@ class GarminAppleTransform(BaseTransform):
                 else np.NaN,
                 axis=1,
             )
-        except AttributeError:
-            raise TransformError
+        except (AttributeError, ValueError) as e:
+            raise TransformError(e)
         return self
 
     def add_apple_garmin_distances(self):
