@@ -6,7 +6,7 @@ from functools import partial
 from typing import Type, Annotated
 import pywebio.input
 from parsedatetime import Calendar
-from pywebio.input import input, radio, select, input_group
+from pywebio.input import input, radio, select, input_group, PASSWORD
 from pywebio.output import put_html, put_processbar, set_processbar, put_text, clear, put_table, put_buttons
 from metrics_collector.orchestrator.generic import Orchestrator, ProgressBar
 from loguru import logger
@@ -105,12 +105,12 @@ def ui_get_schedule_options() -> ScheduleParams:
     """Define scheduling options"""
 
     def check_form(data):
-        success, message = MyScheduler.verify_job(data)
+        success, message = MyScheduler.verify_job(ScheduleParams(**data))
         if not success:
             return 'year', f'{message}, check http://shorturl.at/bjOP0'
 
     fields = [input(_, type='text', name=_) for _ in ('year', 'month', 'day', 'day_of_week', 'hour', 'minute')]
-    form: ScheduleParams = input_group('Schedule', fields, validate=check_form)
+    form: ScheduleParams = ScheduleParams(**input_group('Schedule', fields, validate=check_form))
     logger.info(f'valid params {form}')
     return form
 
@@ -159,13 +159,18 @@ def to_base_class(input_data: dict, base_class=BaseAction):
 
 def ui_get_email_properties() -> EmailAction:
     def check_form(data_):
-        if not re.match(r'^[\w\-.]+@([\w-]+\.)+[\w-]{2,4}$', data_['to_email']):
+        mail_expr = r'^[\w\-.]+@([\w-]+\.)+[\w-]{2,4}$'
+        if not re.match(mail_expr, data_['to_email']):
             return 'to_email', 'Not a valid email'
+        if not re.match(mail_expr, data_['mail_server_user']):
+            return 'mail_server_user', 'Requires including domain name to determine service provider e.g. foo@gmail.com'
 
     data = input_group("Email properties", [
         input('To email', name='to_email'),
         input('Subject', name='subject'),
-        input('Body', name='body')
+        input('Body', name='body'),
+        input('Mail Server User', name='mail_server_user'),
+        input('Mail Server Password', type=PASSWORD, name='mail_server_password')
     ], validate=check_form)
     return EmailAction(**data)
 
