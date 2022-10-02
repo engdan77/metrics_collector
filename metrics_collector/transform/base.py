@@ -14,6 +14,10 @@ from metrics_collector.orchestrator.generic import register_dag_name
 class TransformError(Exception):
     """Error related to transformation of data"""
 
+    def __init__(self, exc: Exception):
+        logger.error(f'Error transforming {exc}, try a longer period?')
+        raise exc
+
 
 class BaseTransform(ABC):
     input_schema: pa.DataFrameSchema = NotImplemented
