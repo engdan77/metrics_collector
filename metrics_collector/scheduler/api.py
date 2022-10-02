@@ -1,10 +1,14 @@
 from __future__ import annotations
 import dataclasses
 import json
+import tempfile
+import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
 from typing import Optional, List, Dict, Tuple, Annotated, Protocol, Type
+
+import apprise
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
 from asyncio.events import AbstractEventLoop
@@ -89,7 +93,7 @@ class BaseAction(ABC):
         return str(self.__dict__)
 
     @staticmethod
-    def _get_graphs(c: ScheduleConfig, format_: Annotated[str, "Type such as `html` or `png`"] = 'png'):
+    def _get_graphs(c: ScheduleConfig, format_: Annotated[str, "Type such as `html` or `png`"] = 'png') -> list:
         """Used by concrete Action classes when run"""
         output_graphs = []
         o = Orchestrator()
@@ -115,22 +119,45 @@ class BaseAction(ABC):
 
 @dataclasses.dataclass
 class EmailAction(BaseAction):
-    """Used as part of the schedule configuration"""
+    """Used as part of the schedule configuration.
+    More details found here https://github.com/caronc/apprise/wiki/Notify_email
+    """
     to_email: str
     subject: str
     body: str
+    mail_server_user: str
+    mail_server_password: str
 
     def __format__(self, format_spec):
         s = shorten
         return f'{s(self.to_email)}, {s(self.subject)}'
 
     def run(self, schedule_config: ScheduleConfig):
+        ext = 'png'
         logger.info(f'Sending email to {self.to_email}')
         try:
-            graphs = self._get_graphs(schedule_config, 'png')
+            graphs = self._get_graphs(schedule_config, ext)
         except MetricsBaseException as e:
             logger.error(f'Schedule failed: {ScheduleConfig} due to {e}')
-        ...
+            return
+        send_obj = apprise.Apprise()
+        try:
+            user, domain = self.mail_server_user.split("@")
+        except ValueError:
+            logger.error('Mail server user need @domain to determine service - e.g. foo@gmail.com')
+            return
+        send_obj.add(f'mailto://{user}:{self.mail_server_password}@{domain}?to={self.to_email}')
+        attach = []
+        with tempfile.TemporaryDirectory() as td:
+            for graph in graphs:
+                f = Path(td) / f'{uuid.uuid4()}.{ext}'
+                f.write_bytes(graph)
+                attach.append(f.as_posix())
+            send_obj.notify(
+                title=self.subject,
+                body=self.body,
+                attach=attach,
+            )
         # TODO: add implementation of run
 
     @classmethod
@@ -260,7 +287,8 @@ def scheduler_config_file() -> Path:
 def get_scheduler_config() -> list[dict]:
     f = scheduler_config_file()
     if f.exists():
-        return json.loads(f.read_text())
+        d = f.read_text()
+        return [] if not d else json.loads(d)
 
 
 def save_scheduler_config(schedule_config: ScheduleConfig):
@@ -276,8 +304,7 @@ def save_scheduler_config(schedule_config: ScheduleConfig):
 def load_scheduler_config() -> list[ScheduleConfig]:
     c = scheduler_config_file()
     j = c.read_text()
-    # TODO: assure config items get properly instantiated
-    return [ScheduleConfig(**config_item) for config_item in json.loads(j)]
+    return [] if not j else [ScheduleConfig(**config_item) for config_item in json.loads(j)]
 
 
 class AsyncService(Protocol):
