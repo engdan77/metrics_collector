@@ -93,7 +93,7 @@ class BaseAction(ABC):
         return str(self.__dict__)
 
     @staticmethod
-    def _get_graphs(c: ScheduleConfig, format_: Annotated[str, "Type such as `html` or `png`"] = 'png') -> list:
+    def get_graphs(c: ScheduleConfig, format_: Annotated[str, "Type such as `html` or `png`"] = 'png') -> list:
         """Used by concrete Action classes when run"""
         output_graphs = []
         o = Orchestrator()
@@ -134,12 +134,7 @@ class EmailAction(BaseAction):
 
     def run(self, schedule_config: ScheduleConfig):
         ext = 'png'
-        logger.info(f'Sending email to {self.to_email}')
-        try:
-            graphs = self._get_graphs(schedule_config, ext)
-        except MetricsBaseException as e:
-            logger.error(f'Schedule failed: {ScheduleConfig} due to {e}')
-            return
+        graphs = self.get_graphs(schedule_config, ext)
         send_obj = apprise.Apprise()
         try:
             user, domain = self.mail_server_user.split("@")
@@ -158,7 +153,6 @@ class EmailAction(BaseAction):
                 body=self.body,
                 attach=attach,
             )
-        # TODO: add implementation of run
 
     @classmethod
     def action_type(cls) -> ActionType:
@@ -167,12 +161,14 @@ class EmailAction(BaseAction):
 
 @dataclasses.dataclass
 class CacheAction(BaseAction):
+    """Main purpose for purely running and do not use graphs for caching purposes"""
 
     def __format__(self, format_spec):
         return ''
 
     def run(self, schedule_config: ScheduleConfig):
-        logger.info('Execute caching')
+        logger.info(f'Execute caching of {schedule_config}')
+        self.get_graphs(schedule_config, 'png')
 
     @classmethod
     def action_type(cls) -> ActionType:
