@@ -33,7 +33,7 @@ class DaysActivities(TypedDict):
 @dataclass
 class BaseExtractParameters:
     """Base dataclass for extraction parameters.
-    Aassure that repr of individual attributes are serializable or set repr=False as field"""
+    Assure that repr of individual attributes are serializable or set repr=False as field"""
     ...
 
 
