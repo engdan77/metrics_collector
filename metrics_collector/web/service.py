@@ -20,12 +20,12 @@ class WebServer:
     async_services_start_method = None
     extra_async_services = None
 
-    def __init__(self, extra_async_services: Iterable[AsyncService] = None):
+    def __init__(self, extra_async_services: Iterable[AsyncService] = None, port=5050):
         print("start web")
         self.__class__.extra_async_services = extra_async_services
         self.mounts()
         self.config = uvicorn.Config(
-            app=app, host="0.0.0.0", port=5050, log_level="debug"
+            app=app, host="0.0.0.0", port=port, log_level="debug"
         )
         app.add_event_handler("startup", WebServer.startup_events)
         self.server = uvicorn.Server(run_uvicorn_loguru(self.config))
