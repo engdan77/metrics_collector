@@ -3,9 +3,7 @@ import os
 import sys
 from pathlib import Path
 import datetime
-
 import typer
-
 from metrics_collector.extract.apple import AppleHealthExtract, AppleHealthExtractParameters
 from metrics_collector.extract.garmin import GarminExtract, GarminExtractParameters
 from metrics_collector.utils import get_past_days
