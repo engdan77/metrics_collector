@@ -3,21 +3,24 @@ import os
 import sys
 from pathlib import Path
 import datetime
+
+import typer
+
 from metrics_collector.extract.apple import AppleHealthExtract, AppleHealthExtractParameters
 from metrics_collector.extract.garmin import GarminExtract, GarminExtractParameters
 from metrics_collector.utils import get_past_days
 from metrics_collector.transform.transformers import GarminAppleTransform
 from metrics_collector.load.graph import GarminAppleLoadGraph
-from scheduler import MyScheduler
-from scheduler.tasks import default_initial_scheduled_tasks
-from web.service import WebServer
+from metrics_collector.scheduler import MyScheduler
+from metrics_collector.scheduler.tasks import default_initial_scheduled_tasks
+from metrics_collector.web.service import WebServer
 from loguru import logger
 import logging
 
 
-def start_initial_loop():
+def start_initial_loop(port):
     scheduler = MyScheduler(initials=default_initial_scheduled_tasks)
-    WebServer((scheduler,))  # send services to be started with uvicorn
+    WebServer((scheduler,), port=port)  # send services to be started with uvicorn
 
 
 def get_data(number_of_days=1800):
@@ -56,11 +59,14 @@ def test_graphs():
     #     print('next')
 
 
-def main():
+def start(port: int = 5000):
     logger.remove()
     logger.add(sys.stdout, level=logging.DEBUG)
-    start_initial_loop()
-    # test_graphs()
+    start_initial_loop(port)
+
+
+def main():
+    typer.run(start)
 
 
 if __name__ == '__main__':
