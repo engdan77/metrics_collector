@@ -2,11 +2,12 @@
 
 ## Features
 
-- Abstracts functions to an existing time-based series analysis project (e.g. using Jyputer notebook)
-  - User friendly web interface for input data and as result plotting charts
-  - RESTful-API for easier integrating your work to external services, such as a dashboard hosted anywhere
-  - Scheduler to allow easily setup recurring events such as sending charts to specific email
-  - Common JSON-based cache storage to allow a local copy of all input data exchanged
+- Abstracts complexity from an existing time-based series analysis project (e.g. using Jyputer notebook) into a service that provides ... 
+  - ... a User friendly web interface for input data and as result plotting charts
+  - ... a RESTful-API for easier integrating your work to external services, such as a dashboard hosted anywhere
+  - ... a Scheduler to allow easily setup recurring events such as sending charts to specific email
+  - ... a common JSON-based cache storage to allow a local copy of all input data exchanged allowed to be used in other future contexts
+- Extends easily by using class inheritance
 
 ## Motivation and background
 
@@ -162,10 +163,11 @@ Whether the to_png or to_html used depend on the user e.g. using the web-UI with
 
 
 ```python
+from typing import Callable, Iterable, Annotated
 from metrics_collector.load.base import BaseLoadGraph
 import plotly
 import plotly.express as px
-from typing import Callable, Iterable, Annotated
+
 
 class GarminAppleLoadGraph(BaseLoadGraph):
     dag_name = 'garmin_and_apple'
