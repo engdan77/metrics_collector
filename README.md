@@ -1,6 +1,12 @@
 # Metrics Collector
 
+## Features
 
+- Abstracts functions to an existing time-based series analysis project (e.g. using Jyputer notebook)
+  - User friendly web interface for input data and as result plotting charts
+  - RESTful-API for easier integrating your work to external services, such as a dashboard hosted anywhere
+  - Scheduler to allow easily setup recurring events such as sending charts to specific email
+  - Common JSON-based cache storage to allow a local copy of all input data exchanged
 
 ## Motivation and background
 
@@ -8,9 +14,9 @@ Now I've recently become more and more fascinated by good software design by fol
 
 Thankfully (but not unusual) I did come across a daily problem of mine but I imagine being something others might also have good reasons to solve, and at the time of writing this I had not yet come across any other project to address those.
 
-So this is when the "**Metric Collector**" was first invented, which is an application to be highly customisable for collecting metric from different data points, deal with the processing and expose certain basic user interfaces such as RESTful API, user-friendly Web interface and also a scheduler to allow e.g. sending these time-based graphs.
+So this is when the "**Metric Collector**" was first invented, which is an application to be highly customisable for collecting metric from different data points, deal with the processing and dynamically expose certain basic user interfaces such as RESTful API, user-friendly web interface and also a scheduler to allow e.g. sending these time-based graphs.
 
-And the code been written in such way, and thankfully to Pythons dynamic nature automatically make this into a more seamless experience thanks to the only work needed to extending additional services is to inherit few different base-classes.
+And the code been written in such way, and thankfully to Pythons dynamic nature automatically make this into a more seamless experience thanks to the only work required to extend additional services is to inherit from a very few different base-classes.
 
 This also gave me a chance to familiarize myself with GitHub actions allow automatic the CI/CD pipeline into the PyPI.
 
@@ -50,8 +56,8 @@ class FooExtractParameters(BaseExtractParameters):
 
 #### Extracting data - inherit from BaseExtract
 
-It is required for your service to inherit from **BaseExtract** that has as main purpose to return dictionary that follows **DaysActivities** based on a date (iso-format) as parameter.
-An example of such **DaysActivities** is
+It is required for your service to inherit from **BaseExtract** that has as main purpose to return dictionary that follows **DaysMetrics** based on a date (iso-format) as parameter.
+An example of such **DaysMetrics** is
 
 ```json
 {
@@ -73,7 +79,7 @@ The base class will also let you know of the required **get_data_from_service(da
 Machinery will also assure that data being cached for future use.
 
 ```python
-from metrics_collector.extract.base import BaseExtract
+from metrics_collector.extract.base import BaseExtract, DaysMetrics
 # from ... import FooExtractParameters
 
 class FooExtract(BaseExtract):
@@ -83,7 +89,7 @@ class FooExtract(BaseExtract):
     def __init__(self, parameters: FooExtractParameters):
         self.parameters = parameters
 
-    def get_data_from_service(self, date_: str) -> DaysActivities:
+    def get_data_from_service(self, date_: str) -> DaysMetrics:
         ...
         day_data: dict = gather_data(date_)
         return day_data
