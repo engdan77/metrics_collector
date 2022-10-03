@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from garminconnect import Garmin, GarminConnectConnectionError
 from loguru import logger
-from metrics_collector.extract.base import DaysActivities, BaseExtract, BaseExtractParameters
+from metrics_collector.extract.base import DaysMetrics, BaseExtract, BaseExtractParameters
 import time
 
 
@@ -33,7 +33,7 @@ class GarminExtract(BaseExtract):
                 logger.warning(f'Failed attempt {_}, sleep for {sleep_time} secs')
                 time.sleep(sleep_time)
 
-    def get_data_from_service(self, date_: str) -> DaysActivities:
+    def get_data_from_service(self, date_: str) -> DaysMetrics:
         if not self.logged_in:
             self.login()
         result = defaultdict(lambda: defaultdict(dict))

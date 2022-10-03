@@ -5,7 +5,7 @@ from typing import Callable, Annotated
 from zipfile import ZipFile
 from loguru import logger
 from apple_health import HealthData
-from metrics_collector.extract.base import DaysActivities, BaseExtract, BaseExtractParameters
+from metrics_collector.extract.base import DaysMetrics, BaseExtract, BaseExtractParameters
 from metrics_collector.storage.uriloader import uri_loader
 
 
@@ -70,7 +70,7 @@ class AppleHealthExtract(BaseExtract):
             result[r.name] = r
         return result
 
-    def get_data_from_service(self, date_) -> DaysActivities:
+    def get_data_from_service(self, date_) -> DaysMetrics:
         if not self.parsed_complete:
             self.parse_records()
         input_records = self.records

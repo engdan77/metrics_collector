@@ -21,13 +21,13 @@ Number = Union[int, float]
 parameter_dict = dict[Annotated[str, "Field name"], Type]
 
 
-class ActivityDetails(TypedDict):
+class MetricDetails(TypedDict):
     value: Union[list[Number], Number]
     unit: str
 
 
-class DaysActivities(TypedDict):
-    date: dict[Annotated[str, 'name of activity'], ActivityDetails]
+class DaysMetrics(TypedDict):
+    date: dict[Annotated[str, 'name of activity'], MetricDetails]
 
 
 @dataclass
@@ -101,11 +101,11 @@ class BaseExtract(ABC):
             return p.get(cls.dag_name, {})
 
     @abstractmethod
-    def get_data_from_service(self, date_: str) -> DaysActivities:
+    def get_data_from_service(self, date_: str) -> DaysMetrics:
         """Get all data from that extract"""
 
     @staticmethod
-    def pop_existing_days(existing_data: DaysActivities, pop_data: DaysActivities) -> DaysActivities:
+    def pop_existing_days(existing_data: DaysMetrics, pop_data: DaysMetrics) -> DaysMetrics:
         """Remove days from pop_data if that day already exists in existing_data"""
         output_pop_data = pop_data.copy()
         for day in pop_data.keys():
@@ -113,7 +113,7 @@ class BaseExtract(ABC):
                 output_pop_data.pop(day)
         return output_pop_data
 
-    def to_json(self, filename: str, data: DaysActivities) -> None:
+    def to_json(self, filename: str, data: DaysMetrics) -> None:
         f = Path(filename)
         if f.exists():
             try:
@@ -128,7 +128,7 @@ class BaseExtract(ABC):
             json.dump(data, f, indent=2)
 
     @staticmethod
-    def from_json(filename: Optional[str], date_=None) -> Union[DaysActivities, None]:
+    def from_json(filename: Optional[str], date_=None) -> Union[DaysMetrics, None]:
         if not Path(filename).exists():
             return None
         with open(filename) as f:
@@ -145,7 +145,7 @@ class BaseExtract(ABC):
         else:
             return {date_: j[date_]} if date_ in j else None
 
-    def get_data(self, date_: str | datetime.date) -> DaysActivities:
+    def get_data(self, date_: str | datetime.date) -> DaysMetrics:
         """This is the main method supposed to be used"""
         if date_ is datetime.date:
             date_ = date_.strftime('%Y-%m-%d')
