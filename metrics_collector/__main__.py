@@ -57,7 +57,7 @@ def test_graphs():
     #     print('next')
 
 
-def start(port: int = 5000):
+def start(port: int = 5050):
     logger.remove()
     logger.add(sys.stdout, level=logging.DEBUG)
     start_initial_loop(port)
