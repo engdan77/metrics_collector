@@ -26,8 +26,7 @@ class MetricDetails(TypedDict):
     unit: str
 
 
-class DaysMetrics(TypedDict):
-    date: dict[Annotated[str, 'name of activity'], MetricDetails]
+DaysMetrics = dict[Annotated[str, "date"], dict[Annotated[str, 'name of activity'], MetricDetails]]
 
 
 @dataclass
