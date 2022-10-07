@@ -94,7 +94,6 @@ class FooExtract(BaseExtract):
         ...
         day_data: dict = gather_data(date_)
         return day_data
-
 ```
 
 ### Transform step
