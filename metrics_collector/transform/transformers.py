@@ -3,9 +3,6 @@ import datetime
 import numpy as np
 import pandas as pd
 import pandera as pa
-
-from metrics_collector.extract.apple import AppleHealthExtract
-from metrics_collector.extract.garmin import GarminExtract
 from metrics_collector.transform.base import BaseTransform, TransformError
 
 
