@@ -1,7 +1,6 @@
 import json
 import tempfile
 from pathlib import Path
-
 import pytest
 
 from metrics_collector.extract.base import (
