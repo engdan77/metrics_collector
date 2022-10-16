@@ -50,11 +50,11 @@ class GarminExtract(BaseExtract):
         for i, a in enumerate(activities, start=1):
             logger.debug(f'Activity {i}')
             for key, unit in key_unit.items():
-                activity_name = f"{a['activityType']['typeKey'].lower()}_{key}"
-                if activity_name not in result[d]:
-                    result[d][activity_name] = {}
-                result[d][activity_name]['unit'] = unit
-                values = result[d][activity_name].get("value", [])
+                metric_name = f"{a['activityType']['typeKey'].lower()}_{key}"
+                if metric_name not in result[d]:
+                    result[d][metric_name] = {}
+                result[d][metric_name]['unit'] = unit
+                values = result[d][metric_name].get("value", [])
                 values.append(a[key])
-                result[d][activity_name]["value"] = values
+                result[d][metric_name]["value"] = values
         return dict(result)

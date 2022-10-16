@@ -80,10 +80,10 @@ class AppleHealthExtract(BaseExtract):
             if r.name in self.activities:
                 if r.start == date_:
                     continue
-                activity_name = r.name.replace(self.activity_prefix, "").lower()
-                result[d][activity_name]["unit"] = r.unit
-                values = result[d][activity_name].get("value", [])
+                metric_name = r.name.replace(self.activity_prefix, "").lower()
+                result[d][metric_name]["unit"] = r.unit
+                values = result[d][metric_name].get("value", [])
                 values.append(r.value)
-                result[d][activity_name]["value"] = values
+                result[d][metric_name]["value"] = values
         return dict(result)
 

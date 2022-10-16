@@ -172,10 +172,10 @@ class BaseExtract(ABC):
             return df
         for date_, activities_data in input_data.items():
             row_data = {}
-            for activity_name, activity_data in activities_data.items():
+            for metric_name, activity_data in activities_data.items():
                 unit = activity_data['unit']
                 value = activity_data['value']
-                field_name = f'{activity_name}_{unit}'
+                field_name = f'{metric_name}_{unit}'
                 if isinstance(value, list):
                     if value and len(value) > 1:
                         for processor_name, func in self.list_value_processors.items():
