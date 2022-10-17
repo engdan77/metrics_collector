@@ -199,7 +199,7 @@ And as a bonus an abstract layer is now able to treat this as one-of-many servic
 
 ### <u>Orchestrator</u>
 
-Now this is the last piece not that a normal user won't need to think about but rather the existing built-in interfaces does use for interfaces such as REST-api and Web User Interface, and this orchestrator class following [facade pattern](https://en.wikipedia.org/wiki/Facade_pattern) allowing easier usage in the future.
+Now this is the last piece not that a normal user won't need to think about but rather the existing built-in interfaces does use for interfaces such as REST-api and Web User Interface, and this orchestrator class following [facade pattern](https://en.wikipedia.org/wiki/Facade_pattern) allowing easier usage in the future, and borrows some ideas from [template method pattern](https://en.wikipedia.org/wiki/Template_method_pattern) in the sense we outline the process in advance and allow concrete classes to fill in the steps required by a new service.
 
 To give a simpler example this is how one instantiate the Orchestrator-class and have it extract, transform and finally return graphs.
 
