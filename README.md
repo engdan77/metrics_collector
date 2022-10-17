@@ -2,20 +2,20 @@
 
 ## Features
 
-- Abstracts complexity from an existing time-based series analysis project (e.g. using Jyputer notebook) into a service that provides ... 
-  - ... a User friendly web interface for input data and as result plotting charts
+- Abstracts complexity from an existing time-based series analysis project (e.g. using Jyputer notebook) that dynamically builds into a service that provides ... 
+  - ... a user friendly web interface for input data and as result plotting charts
   - ... a REST API for easier integrating your work to external services, such as a dashboard hosted anywhere
-  - ... a Scheduler to allow easily setup recurring events such as sending charts to specific email
+  - ... a scheduler to allow easily setup recurring events such as sending charts to specific email
   - ... a common JSON-based cache storage to allow a local copy of all input data exchanged allowed to be used in other future contexts
 - Extends easily by using class inheritance
 
 ## Motivation and background
 
-Now I've recently become more and more fascinated by good software design by following design principles such as SOLID. And reading and learn the different design patterns for solving problems have got myself challenge myself thinking harder what might be found applicable for building a easily extensible and maintainable Python software project .. so what project might that be ..?
+Now I've recently become more and more fascinated by good software design by following design principles such as SOLID. And reading and learning more about different design patterns for solving problems have got myself challenge myself thinking harder what might be found applicable for building a easily extensible and maintainable Python software project .. so what project might that be ..?
 
 Thankfully (but not unusual) I did come across a daily problem of mine - but I imagine being something others might also have good reasons to solve, and at the time of writing this I had not yet come across any other project to address those.
 
-So this is when the "**Metric Collector**" was first invented, which is an application to be highly customisable for collecting metric from different data points, deal with the processing and dynamically expose certain basic user interfaces such as REST API, user-friendly web interface and also a scheduler to allow e.g. sending these time-based graphs.
+So this is when the "**Metric Collector**" was first developed, which is an application to be highly customisable for collecting metric from different data points, deal with the processing and dynamically expose certain basic user interfaces such as REST API, a user-friendly web interface and also a scheduler to allow e.g. sending these time-based graphs.
 
 And the code been written in such way, and thankfully to Pythons dynamic nature automatically make this into a more seamless experience thanks to the only work required to extend additional services is to inherit from a very few different base-classes.
 
@@ -36,7 +36,7 @@ This also gave me a chance to familiarize myself with GitHub actions allow autom
 For the most cases one may prefer to work within a Juypter to test get data, clean it and make chart of these.
 So what this project aim for is to supply a few abstract base classes to you can conform you existing code without need to think too much about the code later on that allow you to easily access data.
 
-### Extract step
+### <u>Extract step</u>
 
 This first step is a prerequisite to have any data to analyse.
 
@@ -96,7 +96,7 @@ class FooExtract(BaseExtract):
         return day_data
 ```
 
-### Transform step
+### <u>Transform step</u>
 
 This step is the next in your pipeline to align the data to your needs.
 
@@ -149,7 +149,7 @@ class FooTransform(BaseTransform):
         return self
 ```
 
-### Load/Graph data
+### <u>Load/Graph data</u>
 
 This is the final step in the pipeline where the term Load a bit abused but just to signal this is the last step in an ETL pipeline.
 
@@ -197,16 +197,64 @@ class GarminAppleLoadGraph(BaseLoadGraph):
 So with this you should now have cleaned up and refactored your code from Jupyter notebook following protocols.
 And as a bonus an abstract layer is now able to treat this as one-of-many services and presents interfaces and functionalities you didn't previously have for e.g. publishing as a dashboard or scheduling reports.
 
+### <u>Orchestrator</u>
+
+Now this is the last piece not that a normal user won't need to think about but rather the existing built-in interfaces does use for interfaces such as REST-api and Web User Interface, and this orchestrator class following [facade pattern](https://en.wikipedia.org/wiki/Facade_pattern) allowing easier usage in the future.
+
+To give a simpler example this is how one instantiate the Orchestrator-class and have it extract, transform and finally return graphs.
+
+```python
+# instantiate orchestrator
+o = Orchestrator()
+
+# get dag_name and period
+dag_name, from_, to_ = ('garmin_and_apple', '2022-03-01', '2022-03-10')  
+
+# OPTIONAL: dynamically get required parameters
+extract_params_definition = o.get_extract_params_def(dag_name)
+
+# required extract params based on abstract class registered for dag_name
+extract_params = {'apple_uri_health_data': 'ftp://foo:bar@127.0.0.1:10021/export.zip', 'garmin_username': 'foo', 'garmin_password': 'bar'}
+
+# OPTIONAL: method allow get previous cached data
+extract_params = o.get_stored_params(dag_name)
+
+# EXTRACT: required with extract_params as dict
+extract_objects = o.get_extract_objects(dag_name, extract_params)
+
+# OPTIONAL: callback function presenting progress between 0.0 to 1.0, following strategy pattern
+pb = my_progress_bar()
+
+# processing those dates
+o.process_dates(extract_objects, from_, to_, progress_bar=pb)
+
+# TRANSFORM: important to be used next step
+transform_object = o.get_transform_object(dag_name, extract_objects)
+
+# LOAD: used to get graph results
+for graph_data in o.get_all_graphs(from_, to_, dag_name, transform_object, 'png'):
+  # custom handler for handling e.g. png or html
+  do_something_with_graph_data(graph_data)
+
+```
+
+
+
+
+
+
+
 ## Software design
 
-So the main idea behind is primarily to abstract the logic that changes the most and with a few different abstract classes supposed to represent each phase most commonly referred as Extract -> Transform -> Load .. so in short summary you would need to implement the following abstract classes
+So the main idea behind is primarily to abstract that common logic related to such time-based analsysis projects into a few different re-usable classes and supposed to represent each phase most commonly referred as **Extract** -> **Transform** -> **Load** .. and following a [template method pattern](https://en.wikipedia.org/wiki/Template_method_pattern) approach for the following ...
 
-BaseExtract
-BaseTransform
-BaseLoad
+Base**E**xtract ... responsible for extract raw data from its source
+Base**T**ransform ... transform and cleaning data
+Base**L**oad** ... generate graphs 
 
-And implement their abstract methods which with help from code-completion of your IDE will make it relatively easy.
-On startup of this application we'll use the class inheritance and their "dag_name" as being the mutual key that binds these steps into what I might be abuse the term related to DAG to expose them as option usable from the different user interfaces.
+** *The term "Load" found slight abused since typically this phase is for storing data while in our case represents generating graphs*
+
+.. and implementing their abstract methods which with help from code-completion of your IDE will make it relatively easy for one to add other services and additional graphs as one wish. On startup of this application we'll use the class inheritance and their "dag_name" as being the mutual key that binds these steps into what I might be abuse the term related to DAG to expose them as option usable from the different user interfaces.
 
 ....
 
