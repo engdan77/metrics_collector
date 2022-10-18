@@ -11,13 +11,13 @@
 
 ## Motivation and background
 
-Now I've recently become more and more fascinated by good software design by following design principles such as SOLID. And reading and learning more about different design patterns for solving problems have got myself challenge myself thinking harder what might be found applicable for building a easily extensible and maintainable Python software project .. so what project might that be ..?
+Main goal with this project was to develop an application that easily allowed me to collect and present time-based metrics from different services, could be anything such as market prices of house, health data such as how distance run etc.
 
-Thankfully (but not unusual) I did come across a daily problem of mine - but I imagine being something others might also have good reasons to solve, and at the time of writing this I had not yet come across any other project to address those.
+At the same time allow me excercise writing maintainable and extensible Python code following good design principles.
 
-So this is when the "**Metric Collector**" was first developed, which is an application to be highly customisable for collecting metric from different data points, deal with the processing and dynamically expose certain basic user interfaces such as REST API, a user-friendly web interface and also a scheduler to allow e.g. sending these time-based graphs.
+So this is when the "**Metrics Collector**" was first developed, which is an application to be highly customisable for collecting metric from different data points, deal with the processing and dynamically expose certain basic user interfaces such as REST API, a user-friendly web interface and also a scheduler to allow e.g. sending these time-based graphs.
 
-And the code been written in such way, and thankfully to Pythons dynamic nature automatically make this into a more seamless experience thanks to the only work required to extend additional services is to inherit from a very few different base-classes.
+And the code been written in such way, and thankfully to Pythons dynamic nature automatically make this into a more seamless experience due to the fact that the only work required to extend additional services is to inherit from a very few different base-classes.
 
 This also gave me a chance to familiarize myself with GitHub actions allow automatic the CI/CD pipeline into the PyPI.
 
