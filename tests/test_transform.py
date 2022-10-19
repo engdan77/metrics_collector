@@ -15,14 +15,12 @@ class FooTransform(BaseTransform):
             "walking": pa.Column(float, nullable=True),
         },
     )
-    dag_name = 'foo'
+    dag_name = "foo"
 
-    def process_pipeline(self, from_: datetime.date, to_: datetime.date) -> pd.DataFrame:
-        (
-            self.index_as_dt()
-            .aggregate_combined_dataframes()
-            .filter_period(from_, to_)
-        )
+    def process_pipeline(
+        self, from_: datetime.date, to_: datetime.date
+    ) -> pd.DataFrame:
+        (self.index_as_dt().aggregate_combined_dataframes().filter_period(from_, to_))
         return self.df
 
 
@@ -33,7 +31,7 @@ def transform_obj(extract_obj):
 
 
 def test_transform_obj(transform_obj):
-    assert transform_obj.dag_name == 'foo', "Wrong dag name"
+    assert transform_obj.dag_name == "foo", "Wrong dag name"
     assert transform_obj.df.shape == (2, 3), "Shape of data wrong"
 
 
@@ -42,5 +40,5 @@ def test_process_pipeline(transform_obj):
     transform_obj.process_pipeline(from_, to_)
     df = transform_obj.df
     assert df.shape == (1, 2), "Unable to filter out specific date"
-    assert df.index.name == 'date', "Index columns should be date"
-    assert set(df.columns) == {'running_meter', 'walking_meter'}
+    assert df.index.name == "date", "Index columns should be date"
+    assert set(df.columns) == {"running_meter", "walking_meter"}

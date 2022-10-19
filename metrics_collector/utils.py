@@ -12,10 +12,12 @@ def get_past_days(number_days: int = 1, offset=0) -> Generator:
     today = datetime.now()
     for d in range(1, number_days):
         x = today - timedelta(days=d + offset)
-        yield x.strftime('%Y-%m-%d')
+        yield x.strftime("%Y-%m-%d")
 
 
-def normalize_period(from_: date | str, to_: date | str, fmt: str = '%Y-%m-%d') -> tuple[date, date]:
+def normalize_period(
+    from_: date | str, to_: date | str, fmt: str = "%Y-%m-%d"
+) -> tuple[date, date]:
     try:
         from_ = datetime.datetime.strptime(from_, fmt)
         to_ = datetime.datetime.strptime(to_, fmt)
@@ -29,7 +31,7 @@ def normalize_period(from_: date | str, to_: date | str, fmt: str = '%Y-%m-%d') 
     return from_, to_
 
 
-def normalize_date(d: date | str, fmt: str = '%Y-%m-%d') -> date:
+def normalize_date(d: date | str, fmt: str = "%Y-%m-%d") -> date:
     try:
         d = datetime.datetime.strptime(d, fmt).date()
     except TypeError:
@@ -40,9 +42,11 @@ def normalize_date(d: date | str, fmt: str = '%Y-%m-%d') -> date:
     return d
 
 
-def get_days_between(from_: str | datetime.date, to_: str | datetime.date, as_text=True, fmt='%Y-%m-%d'):
+def get_days_between(
+    from_: str | datetime.date, to_: str | datetime.date, as_text=True, fmt="%Y-%m-%d"
+):
     from_, to_ = normalize_period(from_, to_)
-    logger.info(f'extracting data for period {from_}, {to_}')
+    logger.info(f"extracting data for period {from_}, {to_}")
     days = (to_ - from_).days
     for day in range(days):
         r: datetime.date = from_ + timedelta(days=day)
@@ -50,8 +54,8 @@ def get_days_between(from_: str | datetime.date, to_: str | datetime.date, as_te
 
 
 def get_cache_dir():
-    return os.getenv('CACHE_DIR', None) or user_data_dir(__package__)
+    return os.getenv("CACHE_DIR", None) or user_data_dir(__package__)
 
 
 def shorten(input_data, letters=8):
-    return f'{input_data[:letters]}...' if len(input_data) >= letters else input_data
+    return f"{input_data[:letters]}..." if len(input_data) >= letters else input_data

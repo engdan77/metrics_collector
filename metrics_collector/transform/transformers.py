@@ -19,9 +19,11 @@ class GarminAppleTransform(BaseTransform):
             "walking_distance_meters": pa.Column(float, nullable=True),
         },
     )
-    dag_name = 'garmin_and_apple'
+    dag_name = "garmin_and_apple"
 
-    def process_pipeline(self, from_: datetime.date, to_: datetime.date) -> pd.DataFrame:
+    def process_pipeline(
+        self, from_: datetime.date, to_: datetime.date
+    ) -> pd.DataFrame:
         (
             self.index_as_dt()
             .aggregate_combined_dataframes()

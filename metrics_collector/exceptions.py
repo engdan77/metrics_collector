@@ -6,4 +6,3 @@ class MetricsBaseException(Exception):
 class MetricsExtractException(MetricsBaseException):
     """Occurs if e.g. fs fails connect to ftp"""
     ...
-

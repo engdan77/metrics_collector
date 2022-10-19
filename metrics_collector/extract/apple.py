@@ -5,19 +5,25 @@ from typing import Callable, Annotated
 from zipfile import ZipFile
 from loguru import logger
 from apple_health import HealthData
-from metrics_collector.extract.base import DaysMetrics, BaseExtract, BaseExtractParameters
+from metrics_collector.extract.base import (
+    DaysMetrics,
+    BaseExtract,
+    BaseExtractParameters,
+)
 from metrics_collector.storage.uriloader import uri_loader
 
 
 @dataclass
 class AppleHealthExtractParameters(BaseExtractParameters):
     apple_uri_health_data: str
-    uri_loader: Callable[[Annotated[str, "uri_string"]], bytes] = field(init=False, default=uri_loader, repr=False)
+    uri_loader: Callable[[Annotated[str, "uri_string"]], bytes] = field(
+        init=False, default=uri_loader, repr=False
+    )
 
 
 class AppleHealthExtract(BaseExtract):
 
-    dag_name = 'garmin_and_apple'
+    dag_name = "garmin_and_apple"
 
     def __init__(self, parameters: AppleHealthExtractParameters):
         self.parameters = parameters
@@ -37,8 +43,10 @@ class AppleHealthExtract(BaseExtract):
 
     def parse_records(self):
         with NamedTemporaryFile() as f:
-            logger.debug(f'writing zipped apple xml to {f.name}')
-            f.write(self.parameters.uri_loader(self.parameters.apple_uri_health_data))  # load data from service
+            logger.debug(f"writing zipped apple xml to {f.name}")
+            f.write(
+                self.parameters.uri_loader(self.parameters.apple_uri_health_data)
+            )  # load data from service
             self.xml = self._extract_xml(f.name)
         logger.debug(f"found xml {int(len(self.xml) / 1000)} KB")
         self.records = self._get_health_data_from_xml(self.xml)
@@ -86,4 +94,3 @@ class AppleHealthExtract(BaseExtract):
                 values.append(r.value)
                 result[d][metric_name]["value"] = values
         return dict(result)
-

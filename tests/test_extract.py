@@ -61,7 +61,10 @@ def test_extract_obj_has_cache_dir(extract_obj):
 
 def test_extract_obj_returns_data(extract_obj):
     data = extract_obj.get_data_from_service("2022-01-01")
-    assert data == {'running': {'value': 300, 'unit': 'meter'}, 'walking': {'value': 150, 'unit': 'meter'}}
+    assert data == {
+        "running": {"value": 300, "unit": "meter"},
+        "walking": {"value": 150, "unit": "meter"},
+    }
 
 
 def test_extract_obj_to_json(extract_obj):

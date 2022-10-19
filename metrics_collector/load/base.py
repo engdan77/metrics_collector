@@ -11,24 +11,28 @@ from fastapi_utils.enums import StrEnum
 
 class GraphFormat(StrEnum):
     """Different formats to be returned and shall be kept standard extension to allow mime-type conversion"""
+
     html = auto()
     png = auto()
 
 
 class BaseLoadGraph(ABC):
-    graph_formats = {GraphFormat.png: 'to_png',
-                     GraphFormat.html: 'to_html'}
+    graph_formats = {GraphFormat.png: "to_png", GraphFormat.html: "to_html"}
 
     dag_name: str | Iterable = NotImplemented
 
-    def __init__(self, transformer: BaseTransform, from_: datetime.date, to_: datetime.date):
+    def __init__(
+        self, transformer: BaseTransform, from_: datetime.date, to_: datetime.date
+    ):
         self.transformer = transformer
         self.transformer.validate()
         self.df = self.transformer.process_pipeline(from_, to_)
 
     def __init_subclass__(cls, **kwargs):
         if cls.dag_name is NotImplemented:
-            raise NotImplemented("the dag_name is required for extract, transform and load subclasses")
+            raise NotImplemented(
+                "the dag_name is required for extract, transform and load subclasses"
+            )
         register_dag_name(cls)
 
     @abstractmethod
@@ -40,7 +44,9 @@ class BaseLoadGraph(ABC):
         """Convert result of graph method into png bytes"""
 
     @abstractmethod
-    def get_all_graph_methods(self) -> Iterable[Annotated[Callable, "Class methods generating graphs"]]:
+    def get_all_graph_methods(
+        self,
+    ) -> Iterable[Annotated[Callable, "Class methods generating graphs"]]:
         """Return list with methods generating graphs"""
 
     def get_all_graphs(self, graph_format: GraphFormat):

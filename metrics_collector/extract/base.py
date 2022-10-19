@@ -26,24 +26,24 @@ class MetricDetails(TypedDict):
     unit: str
 
 
-DaysMetrics = dict[Annotated[str, "date"], dict[Annotated[str, 'name of activity'], MetricDetails]]
+DaysMetrics = dict[
+    Annotated[str, "date"], dict[Annotated[str, "name of activity"], MetricDetails]
+]
 
 
 @dataclass
 class BaseExtractParameters:
     """Base dataclass for extraction parameters.
     Assure that repr of individual attributes are serializable or set repr=False as field"""
+
     ...
 
 
 class BaseExtract(ABC):
 
-    list_value_processors = {'max': max,
-                             'min': min,
-                             'mean': mean,
-                             'sum': sum}
+    list_value_processors = {"max": max, "min": min, "mean": mean, "sum": sum}
     cache_dir = get_cache_dir()
-    params_file = f'{cache_dir}/params'
+    params_file = f"{cache_dir}/params"
     dag_name: str | Iterable = NotImplemented
     parameters = {}
 
@@ -52,11 +52,13 @@ class BaseExtract(ABC):
         ...
 
     def __repr__(self):
-        return f'{self.__class__.__name__}({self._get_arguments()}'
+        return f"{self.__class__.__name__}({self._get_arguments()}"
 
     def __init_subclass__(cls, **kwargs):
         if cls.dag_name is NotImplemented:
-            raise NotImplemented("the dag_name is required for extract, transform and load subclasses")
+            raise NotImplemented(
+                "the dag_name is required for extract, transform and load subclasses"
+            )
         register_dag_name(cls)
 
     def _get_arguments(self):
@@ -68,19 +70,19 @@ class BaseExtract(ABC):
     @classmethod
     def get_parameters(cls) -> parameter_dict:
         params = {}
-        for field in fields(get_annotations(cls.__init__).get('parameters')):
+        for field in fields(get_annotations(cls.__init__).get("parameters")):
             if field.init:
                 params[field.name] = field.type
         return params
 
     @classmethod
     def get_extract_parameter_class(cls):
-        return get_annotations(cls.__init__).get('parameters', None)
+        return get_annotations(cls.__init__).get("parameters", None)
 
     def get_cache_file(self):
         """Get cache dir as environment variable CACHE_DIR or app dir"""
         Path(self.cache_dir).mkdir(exist_ok=True)
-        return f'{self.cache_dir}/{self.__class__.__name__}.json'
+        return f"{self.cache_dir}/{self.__class__.__name__}.json"
 
     @classmethod
     def store_params(cls, params: dict):
@@ -104,7 +106,9 @@ class BaseExtract(ABC):
         """Get all data from that extract"""
 
     @staticmethod
-    def pop_existing_days(existing_data: DaysMetrics, pop_data: DaysMetrics) -> DaysMetrics:
+    def pop_existing_days(
+        existing_data: DaysMetrics, pop_data: DaysMetrics
+    ) -> DaysMetrics:
         """Remove days from pop_data if that day already exists in existing_data"""
         output_pop_data = pop_data.copy()
         for day in pop_data.keys():
@@ -118,7 +122,7 @@ class BaseExtract(ABC):
             try:
                 current_data = json.loads(f.read_text())
             except json.decoder.JSONDecodeError:
-                logger.warning(f'{f.as_posix()} is corrupt, removing')
+                logger.warning(f"{f.as_posix()} is corrupt, removing")
                 f.unlink(missing_ok=True)
             else:
                 self.pop_existing_days(current_data, data)
@@ -134,9 +138,11 @@ class BaseExtract(ABC):
             try:
                 j = json.load(f)
             except json.decoder.JSONDecodeError as e:
-                now = datetime.datetime.now().replace(microsecond=0).isoformat('_')
-                backup_file = f'{filename}_{now}'
-                logger.warning(f'Unable to read from cached JSON, most likely corrupt with following error {e.msg} saving backup to {backup_file}')
+                now = datetime.datetime.now().replace(microsecond=0).isoformat("_")
+                backup_file = f"{filename}_{now}"
+                logger.warning(
+                    f"Unable to read from cached JSON, most likely corrupt with following error {e.msg} saving backup to {backup_file}"
+                )
                 Path(backup_file).write_text(f.read())
                 return None
         if not date_:
@@ -147,14 +153,16 @@ class BaseExtract(ABC):
     def get_data(self, date_: str | datetime.date) -> DaysMetrics:
         """This is the main method supposed to be used"""
         if date_ is datetime.date:
-            date_ = date_.strftime('%Y-%m-%d')
+            date_ = date_.strftime("%Y-%m-%d")
         cache_file = self.get_cache_file()
-        self.__class__.store_params(self.parameters.__dict__)  # save last working params
-        logger.debug(f'attempt get cache data from {cache_file}')
+        self.__class__.store_params(
+            self.parameters.__dict__
+        )  # save last working params
+        logger.debug(f"attempt get cache data from {cache_file}")
         if (j := self.from_json(cache_file, date_)) is not None:
-            logger.debug(f'found cached {len(j)} bytes')
+            logger.debug(f"found cached {len(j)} bytes")
             return j
-        logger.debug(f'getting data for {date_}')
+        logger.debug(f"getting data for {date_}")
         j = self.get_data_from_service(date_)
         self.to_json(cache_file, j)
         return j
@@ -173,9 +181,9 @@ class BaseExtract(ABC):
         for date_, activities_data in input_data.items():
             row_data = {}
             for metric_name, activity_data in activities_data.items():
-                unit = activity_data['unit']
-                value = activity_data['value']
-                field_name = f'{metric_name}_{unit}'
+                unit = activity_data["unit"]
+                value = activity_data["value"]
+                field_name = f"{metric_name}_{unit}"
                 if isinstance(value, list):
                     if value and len(value) > 1:
                         for processor_name, func in self.list_value_processors.items():
@@ -183,13 +191,17 @@ class BaseExtract(ABC):
                                 processed_data = func(value)
                             except TypeError:
                                 continue
-                            row_data.update({'date': date_,
-                                             f'{field_name}_{processor_name}': processed_data})
+                            row_data.update(
+                                {
+                                    "date": date_,
+                                    f"{field_name}_{processor_name}": processed_data,
+                                }
+                            )
                     else:
-                        row_data.update({'date': date_, field_name: value[0]})
+                        row_data.update({"date": date_, field_name: value[0]})
                 else:
-                    row_data.update({'date': date_, field_name: value})
+                    row_data.update({"date": date_, field_name: value})
             df = pd.concat([df, pd.DataFrame.from_records([row_data])])
-        df['date'] = pd.to_datetime(df["date"]).dt.date
-        df = df.set_index(df['date'])
+        df["date"] = pd.to_datetime(df["date"]).dt.date
+        df = df.set_index(df["date"])
         return df

@@ -15,7 +15,7 @@ class TransformError(Exception):
     """Error related to transformation of data"""
 
     def __init__(self, exc: Exception):
-        logger.error(f'Error transforming {exc}, try a longer period?')
+        logger.error(f"Error transforming {exc}, try a longer period?")
         raise exc
 
 
@@ -26,7 +26,7 @@ class BaseTransform(ABC):
 
     def __init__(self, *extract_classes: list[BaseExtract]):
         """Extract classes as arguments and merges"""
-        self.df = pd.concat([getattr(_, 'to_df')() for _ in extract_classes])
+        self.df = pd.concat([getattr(_, "to_df")() for _ in extract_classes])
 
     @classmethod
     def __init_subclass__(cls, **kwargs):
@@ -44,7 +44,9 @@ class BaseTransform(ABC):
         return f"{self.__class__.__name__} with size {self.df.shape}"
 
     @abstractmethod
-    def process_pipeline(self, from_: datetime.date, to_: datetime.date) -> pd.DataFrame:
+    def process_pipeline(
+        self, from_: datetime.date, to_: datetime.date
+    ) -> pd.DataFrame:
         """Shall process and return dataframe with data"""
 
     def validate(self):
@@ -62,7 +64,7 @@ class BaseTransform(ABC):
         strategy = {_: "first" for _ in self.df.columns}
         self.df = self.df.groupby(self.df.index).agg(strategy)
         self.df.sort_index()
-        assert self.df.size > 0, 'no data in dataframe no graphs can be made'
+        assert self.df.size > 0, "no data in dataframe no graphs can be made"
         if drop_col:
             self.df.drop(drop_col, axis=1, inplace=True)
         return self
@@ -75,7 +77,9 @@ class BaseTransform(ABC):
                 self.df[c] = default_value
         return self
 
-    def filter_period(self, from_: datetime.date, to_: datetime.date, filter_by='index'):
+    def filter_period(
+        self, from_: datetime.date, to_: datetime.date, filter_by="index"
+    ):
         """Filter period between dates"""
         f, t = from_, to_
         self.df = self.df.query(f"{filter_by} > @f & {filter_by} < @t")
