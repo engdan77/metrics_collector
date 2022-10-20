@@ -54,7 +54,7 @@ def test_extract_obj_has_properties(extract_obj):
     assert isinstance(extract_obj.parameters, BaseExtractParameters)
 
 
-def test_extract_obj_has_cache_dir(extract_obj):
+def test_extract_obj_has_data_dir(extract_obj):
     f = extract_obj.get_cache_file()
     assert Path(f).parent.exists() is True
 

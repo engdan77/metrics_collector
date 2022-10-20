@@ -14,7 +14,7 @@ from appdirs import user_data_dir
 from deepmerge import always_merger
 from statistics import mean
 from metrics_collector.orchestrator.generic import register_dag_name
-from metrics_collector.utils import get_cache_dir
+from metrics_collector.utils import get_data_dir
 
 Number = Union[int, float]
 
@@ -42,8 +42,8 @@ class BaseExtractParameters:
 class BaseExtract(ABC):
 
     list_value_processors = {"max": max, "min": min, "mean": mean, "sum": sum}
-    cache_dir = get_cache_dir()
-    params_file = f"{cache_dir}/params"
+    data_dir = get_data_dir()
+    params_file = f"{data_dir}/params"
     dag_name: str | Iterable = NotImplemented
     parameters = {}
 
@@ -80,13 +80,13 @@ class BaseExtract(ABC):
         return get_annotations(cls.__init__).get("parameters", None)
 
     def get_cache_file(self):
-        """Get cache dir as environment variable CACHE_DIR or app dir"""
-        Path(self.cache_dir).mkdir(exist_ok=True)
-        return f"{self.cache_dir}/{self.__class__.__name__}.json"
+        """Get cache dir as environment variable DATA_DIR or app dir"""
+        Path(self.data_dir).mkdir(exist_ok=True)
+        return f"{self.data_dir}/{self.__class__.__name__}.json"
 
     @classmethod
     def store_params(cls, params: dict):
-        Path(cls.cache_dir).mkdir(exist_ok=True)
+        Path(cls.data_dir).mkdir(exist_ok=True)
         with shelve.open(cls.params_file) as f:
             current = f.get(cls.dag_name, {})
             current.update(params)

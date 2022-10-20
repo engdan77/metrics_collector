@@ -20,7 +20,7 @@ from loguru import logger
 from metrics_collector.exceptions import MetricsBaseException
 from metrics_collector.helper import import_item
 from metrics_collector.orchestrator.generic import Orchestrator
-from metrics_collector.utils import shorten, get_cache_dir
+from metrics_collector.utils import shorten, get_data_dir
 
 if not sys.warnoptions:  # allow overriding with `-W` option
     warnings.filterwarnings("ignore", category=RuntimeWarning, module="runpy")
@@ -301,7 +301,7 @@ class MyScheduler:
 
 
 def scheduler_config_file() -> Path:
-    c = get_cache_dir()
+    c = get_data_dir()
     return Path(f"{c}/scheduler.json")
 
 

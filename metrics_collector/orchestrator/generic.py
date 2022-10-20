@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 from loguru import logger
 from functools import wraps
 
-from metrics_collector.utils import get_days_between, get_cache_dir, normalize_period
+from metrics_collector.utils import get_days_between, get_data_dir, normalize_period
 
 if TYPE_CHECKING:
     from metrics_collector.extract.base import (
@@ -131,8 +131,8 @@ def caching(func):
     @wraps(func)
     def cache_function(*args, **kwargs):
         # TODO: RuntimeWarning: coroutine 'Staller.stall' was never awaited
-        cache_dir = get_cache_dir()
-        cache_file = f"{cache_dir}/graph_cache"
+        data_dir = get_data_dir()
+        cache_file = f"{data_dir}/graph_cache"
         today = datetime.date.today()
         signature = f"[{today}, {func.__name__}({args})]"
         s = shelve.open(cache_file)

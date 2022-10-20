@@ -53,8 +53,8 @@ def get_days_between(
         yield r.strftime(fmt) if as_text else r
 
 
-def get_cache_dir():
-    return os.getenv("CACHE_DIR", None) or user_data_dir(__package__)
+def get_data_dir():
+    return os.getenv("DATA_DIR", None) or user_data_dir(__package__)
 
 
 def shorten(input_data, letters=8):
