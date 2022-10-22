@@ -21,7 +21,7 @@ And the code been written in such way, and thankfully to Pythons dynamic nature 
 
 This also gave me a chance to familiarize myself with GitHub actions allow automatic the CI/CD pipeline into the PyPI.
 
-....
+<img src="https://raw.githubusercontent.com/engdan77/project_images/master/pics/hld_concepts.png" alt="hld_concepts" style="zoom: 67%;" />
 
 ## Installation
 
@@ -246,6 +246,20 @@ for graph_data in o.get_all_graphs(from_, to_, dag_name, transform_object, 'png'
 
 ## Software design
 
+Overall
+
+So as mentioned earlier, the main components of this design could be described as
+
+- Backend
+  - Orchestrator - the class that ties the ETL steps together (Facade)
+  - Cache - this part assures there is no need to retrieve data already existing
+  - Scheduler - this part responsible to perform scheduled metrics e.g. send as email
+- Frontend
+  - Web UI - this allow the user to execute ETL based on available services
+  - REST API - this expose the available metrics and makes it easier integrate with other platforms
+
+### Abstracted backend backend logic
+
 So the main idea behind is primarily to abstract that common logic related to such time-based analsysis projects into a few different re-usable classes and supposed to represent each phase most commonly referred as **Extract** -> **Transform** -> **Load** .. and following a [template method pattern](https://en.wikipedia.org/wiki/Template_method_pattern) approach for the following ...
 
 Base**E**xtract ... responsible for extract raw data from its source
@@ -256,14 +270,146 @@ Base**L**oad** ... generate graphs
 
 .. and implementing their abstract methods which with help from code-completion of your IDE will make it relatively easy for one to add other services and additional graphs as one wish. On startup of this application we'll use the class inheritance and their "dag_name" as being the mutual key that binds these steps into what I might be abuse the term related to DAG to expose them as option usable from the different user interfaces.
 
-....
+Conceptually how these classes relates to each others and the steps being responsible for could be simplified and illustrated such as below diagram and we follow [strategy pattern](https://en.wikipedia.org/wiki/Strategy_pattern) allowing us to selecting algorithms in runtime e.g. "transform" initializes using an "extract" object... and "load graph" initialized with "transform".
 
-Facade pattern (Orchestrator)
-Strategy pattern (passing progress bar per reference)
-Template method pattern
+#### High Level Design
+
+```mermaid
+%%{init: {'theme':'dark'}}%%
+flowchart
+subgraph Conceptual design for class interfaces
+    direction BT
+    subgraph BP["Orchestrator abstraction"]
+        et["class Orchestrator()\n+get_extract_params_def(dag_name)\n+get_extract_objects(dag_name, extract_params)\n+process_dates(extract_objects, from_, to_, progress_bar=pb)\n+get_transform_object(dag_name, extract_objects)\n+get_all_graphs(from_, to_, dag_name, transform_object, 'html')\n"]
+    end
+        subgraph ETL
+            direction LR
+                subgraph Extract_Data
+                direction BT
+                    gd["concrete class\ndag_name\n+get_data_from_service()"] --> BE["abstract BaseExtract()"]
+                end
+                subgraph Transform_Data
+                direction BT
+                    pp["concrete class\ndag_name\n+process_pipeline(from, to)\n+input_schema"] --> BT["abstract BaseTransform()"]
+                end
+                subgraph Graph_Data
+                direction BT
+                    ga["concrete class\n+dag_name\nget_all_graph_methods(graph_format)\n+to_html()\n+to_png()"] --> BL["abstract BaseLoadGaph()"]
+                end
+            end
+        subgraph FE["Web/REST"]
+            x
+        end
+    end
+    
+Extract_Data ==> Transform_Data ==> Graph_Data
+ETL ==> BP
+BP ==> FE
+```
+
+### Scheduler and Orchestrator
+
+How the classes responsible for keeping track of those scheduled ETL tasks and Orchestrator executing those, how they relate to each others could be illustrated as the below class diagram.
+
+```mermaid
+%%{init: {'theme':'dark'}}%%
+classDiagram
+    BaseAction <|-- EmailAction
+    BaseAction <|-- CacheAction
+    BaseAction o-- Orchestration
+
+    BaseScheduleParams <|-- ScheduleParams
+    Enum <|-- ActionType
+
+    EmailAction o-- ActionType
+    CacheAction o-- ActionType
+
+    ScheduleConfig o-- ScheduleParams
+    ScheduleConfig o-- ActionType
+    ScheduleConfig o-- BaseAction
+
+
+    class Orchestration {
+    +get_extract_objects(extract_params)
+    +process_dates(...,from ,to)
+    +get_transform_object(...)
+    +get_all_graphs(..., 'png')
+    }
+
+    class ScheduleConfig {
+    <<dataclass>>
+    +dag_name: str
+    +from_: str
+    +to_: str
+    +extract_params: dict
+    +schedule_params: ScheduleParams
+    +action_type: ActionType
+    +action_data: BaseAction
+    __post_init__()
+    }
+
+    class ActionType {
+    <<Enum>>
+        +Email
+        +Cache
+    }
+
+    class BaseAction {
+        <<abstract>>
+        -orchestration
+        +action_type()
+        +run()
+    }
+
+    class EmailAction {
+        +to_email: str
+        +subject: str
+        +body: str
+        +action_type()
+        +run()
+    }
+
+    class CacheAction {
+        +action_type()
+        +run()
+    }
+
+    class BaseScheduleParams {
+        <<abstract>>
+        +__format__()
+    }
+
+    class ScheduleParams {
+        +year: int | str
+        +month: int | str
+        +day: int | str
+        +day_of_week: int | str
+        +hour: int | str
+        +minute: int | str
+        +__format()__
+    }
+
+```
+
+
+
+### Frontend
+
+For the frontend I use two primary frameworks that makes this easy for us to expose to end-users, for the Web UI I use [PyWebIO](https://pywebio.readthedocs.io/en/latest/) together using [uvicorn](https://www.uvicorn.org) and [FastAPI](https://fastapi.tiangolo.com) to expose this as web service and use some techniques allow us to dynamically create [REST API](https://en.wikipedia.org/wiki/Representational_state_transfer) routes based on services available.
 
 
 
 ## Credits
 
-.....
+Would primarily like to give shoutout to follow projects that have made this one possible .. 
+
+- [Pandas](https://pandas.pydata.org)
+- [Pandera](https://pandera.readthedocs.io/en/stable/)
+- [Plotly](https://plotly.com)
+- [FastAPI](https://fastapi.tiangolo.com)
+- [UviCorn](https://www.uvicorn.org)
+- [PyWebIO](https://pywebio.readthedocs.io)
+- [APScheduler](https://apscheduler.readthedocs.io)
+- [apprise](https://github.com/caronc/apprise)
+- [Typer](http://typer.tiangolo.com/)
+- [makefun](https://smarie.github.io/python-makefun/)
