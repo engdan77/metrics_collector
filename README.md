@@ -33,7 +33,7 @@ This also gave me a chance to familiarize myself with GitHub actions allow autom
 
 ## Tutorial - implement your own service
 
-For the most cases one may prefer to work within a Juypter to test get data, clean it and make chart of these.
+For the most cases one may prefer to work within a [Juypter notebook](https://jupyter.org) to test get data, clean it and make chart of these.
 So what this project aim for is to supply a few abstract base classes to you can conform you existing code without need to think too much about the code later on that allow you to easily access data.
 
 ### <u>Extract step</u>
