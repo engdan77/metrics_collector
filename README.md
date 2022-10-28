@@ -129,7 +129,7 @@ class FooTransform(BaseTransform):
             "walking": pa.Column(float, nullable=True)
         },
     )
-    dag_name = 'garmin_and_apple'
+    dag_name = 'foo'
 
     def process_pipeline(self, from_: datetime.date, to_: datetime.date) -> pd.DataFrame:
         """This is a required class method that returns a dataframe of transformed data"""
@@ -138,7 +138,6 @@ class FooTransform(BaseTransform):
             .aggregate_combined_dataframes()
             .filter_period(from_, to_)
             .my_custom_transformer_method()
-            .add_apple_garmin_distances()
             .add_missing_values()
         )
         return self.df
@@ -168,8 +167,8 @@ import plotly
 import plotly.express as px
 
 
-class GarminAppleLoadGraph(BaseLoadGraph):
-    dag_name = 'garmin_and_apple'
+class FooLoadGraph(BaseLoadGraph):
+    dag_name = 'foo'
 
     def get_all_graph_methods(self) -> Iterable[Annotated[Callable, "Class methods generating graphs"]]:
         return self.my_walking_graph, self.my_running_graph
@@ -208,13 +207,13 @@ To give a simpler example this is how one instantiate the Orchestrator-class and
 o = Orchestrator()
 
 # get dag_name and period
-dag_name, from_, to_ = ('garmin_and_apple', '2022-03-01', '2022-03-10')  
+dag_name, from_, to_ = ('foo', '2022-03-01', '2022-03-10')  
 
 # OPTIONAL: dynamically get required parameters
 extract_params_definition = o.get_extract_params_def(dag_name)
 
 # required extract params based on abstract class registered for dag_name
-extract_params = {'apple_uri_health_data': 'ftp://foo:bar@127.0.0.1:10021/export.zip', 'garmin_username': 'foo', 'garmin_password': 'bar'}
+extract_params = {'uri_for_foo_service': 'ftp://foo:bar@127.0.0.1:10021/export.zip'}
 
 # OPTIONAL: method allow get previous cached data
 extract_params = o.get_stored_params(dag_name)
