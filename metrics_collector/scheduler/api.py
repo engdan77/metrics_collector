@@ -302,7 +302,10 @@ class MyScheduler:
 
 def scheduler_config_file() -> Path:
     c = get_data_dir()
-    return Path(f"{c}/scheduler.json")
+    f = Path(f"{c}/scheduler.json")
+    if not f.exists():
+        f.touch(exist_ok=True)
+    return f
 
 
 def get_scheduler_config() -> list[dict]:
