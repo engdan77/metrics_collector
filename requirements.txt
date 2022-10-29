@@ -25,3 +25,4 @@ pytest-mock
 pytest~=7.1.3
 fastapi_utils
 uvicorn_loguru_integration
+websockets
