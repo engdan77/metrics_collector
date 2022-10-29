@@ -1,9 +1,9 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='metrics_collector',
-    version='0.0.1',
-    packages=['metrics_collector'],
+    version='0.0.2',
+    packages=find_packages(),
     install_requires=open('requirements.txt').read().split('\n'),
     url='',
     license='MIT',
