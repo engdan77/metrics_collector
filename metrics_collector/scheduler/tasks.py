@@ -5,7 +5,7 @@ default_initial_scheduled_tasks = [
     [
         "metrics_collector.scheduler.tasks.ping",
         "interval",
-        {"seconds": 15, "id": "tick"},
+        {"seconds": 3600, "id": "tick"},
     ],
 ]
 
