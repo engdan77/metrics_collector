@@ -1,3 +1,1 @@
-from . import extract
-from . import transform
-from . import load
+from metrics_collector import extract, transform, load
