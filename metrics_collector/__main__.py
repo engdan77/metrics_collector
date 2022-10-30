@@ -28,8 +28,11 @@ def start(port: int = typer.Option(5050, help="Port that Web Service use"), data
     logger.add(sys.stdout, level=getattr(logging, log_level))
     try:
         start_initial_loop(port)
-    except AttributeError:
-        pass  # workaround supress message at exit
+    except AttributeError as e:
+        if e.name == 'loaded':
+            logger.info('Exiting')  # workaround supress message at exit
+        else:
+            raise
 
 
 def main():
