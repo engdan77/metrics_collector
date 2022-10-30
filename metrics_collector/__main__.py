@@ -26,7 +26,10 @@ def start(port: int = typer.Option(5050, help="Port that Web Service use"), data
     logging.getLogger('apscheduler').setLevel(logging.WARNING)
     logger.remove()
     logger.add(sys.stdout, level=getattr(logging, log_level))
-    start_initial_loop(port)
+    try:
+        start_initial_loop(port)
+    except AttributeError:
+        pass  # workaround supress message at exit
 
 
 def main():
