@@ -23,6 +23,7 @@ def start_initial_loop(port):
 def start(port: int = typer.Option(5050, help="Port that Web Service use"), data_dir: str = typer.Option(None, help="Override default path for cache and configuration"), log_level: LogLevel = LogLevel.INFO):
     if data_dir:
         os.environ['DATA_DIR'] = data_dir
+    logging.getLogger('apscheduler').setLevel(logging.WARNING)
     logger.remove()
     logger.add(sys.stdout, level=getattr(logging, log_level))
     start_initial_loop(port)
