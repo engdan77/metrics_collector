@@ -39,20 +39,9 @@ $ pip3 install git+https://github.com/engdan77/metrics_collector.git
 
 ### From source
 
-Start server
+Start it from within the terminal by `metrics_collector` with the optional `--port` and `--data-dir` 
 
-```shell
-$ metrics_collector                                                                                                        
-start web
-2022-10-29 08:53:31.941 | INFO     | uvicorn.server:serve:75 - Started server process [77668]
-2022-10-29 08:53:31.941 | INFO     | uvicorn.lifespan.on:startup:45 - Waiting for application startup.
-2022-10-29 08:53:31.942 | INFO     | apscheduler.schedulers.base:add_job:444 - Adding job tentatively -- it will be properly scheduled when the scheduler starts
-2022-10-29 08:53:31.942 | INFO     | apscheduler.schedulers.base:_real_add_job:885 - Added job "MyScheduler.reload_on_config_update" to job store "default"
-2022-10-29 08:53:31.942 | INFO     | apscheduler.schedulers.base:start:171 - Scheduler started
-2022-10-29 08:53:31.943 | INFO     | uvicorn.lifespan.on:startup:59 - Application startup complete.
-2022-10-29 08:53:31.943 | INFO     | uvicorn.server:_log_started_message:206 - Uvicorn running on http://0.0.0.0:5050 (Press CTRL+C to quit)
-
-```
+![cli_metrics_collector](https://raw.githubusercontent.com/engdan77/project_images/master/pics/cli_metrics_collector.png)
 
 Use your browser to connect to http://127.0.0.1:5050 or the port that you can change with the --port argument.
 
