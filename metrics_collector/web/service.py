@@ -21,7 +21,6 @@ class WebServer:
     extra_async_services = None
 
     def __init__(self, extra_async_services: Iterable[AsyncService] = None, port=5050):
-        print("start web")
         self.__class__.extra_async_services = extra_async_services
         self.mounts()
         self.config = uvicorn.Config(
