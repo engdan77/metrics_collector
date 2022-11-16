@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Iterable
 
 import uvicorn
@@ -5,6 +6,8 @@ from loguru import logger
 import asyncio
 from uvicorn_loguru_integration import run_uvicorn_loguru
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from pywebio.platform.fastapi import asgi_app
 
 from metrics_collector.scheduler.api import AsyncService
@@ -13,6 +16,11 @@ from metrics_collector.web.ui import ui_show, ui_add_schedule, ui_remove_schedul
 
 app = FastAPI()
 app.include_router(graph_router, prefix='/graph')
+
+
+@app.get('/')
+def main_route():
+    return RedirectResponse('/static')
 
 
 class WebServer:
@@ -43,9 +51,10 @@ class WebServer:
             service.start()
 
     def mounts(self):
-        app.mount("/show", asgi_app(ui_show))
-        app.mount("/add_schedule", asgi_app(ui_add_schedule))
-        app.mount('/remove_schedule', asgi_app(ui_remove_schedule))
+        app.mount("/action/show", asgi_app(ui_show))
+        app.mount("/action/add_schedule", asgi_app(ui_add_schedule))
+        app.mount('/action/remove_schedule', asgi_app(ui_remove_schedule))
+        app.mount("/static", StaticFiles(directory=Path(__file__).parent / 'static', html=True), name="static")
 
     def start(self):
         self.server.serve()
