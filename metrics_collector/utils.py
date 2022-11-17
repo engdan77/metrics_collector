@@ -1,10 +1,12 @@
 import os
 from datetime import datetime, timedelta, date
+from pathlib import Path
 from typing import Generator
 import datetime
 
 from appdirs import user_data_dir
 from loguru import logger
+from loguru._file_sink import FileSink
 from parsedatetime import Calendar
 
 
@@ -59,3 +61,15 @@ def get_data_dir():
 
 def shorten(input_data, letters=8):
     return f"{input_data[:letters]}..." if len(input_data) >= letters else input_data
+
+
+def get_file_sink_from_logger():
+    for _, handler in logger._core.handlers.items():
+        if isinstance(handler._sink, FileSink):
+            return handler._sink._file.name
+
+
+def get_last_log_lines(number_of_lines=20):
+    f = get_file_sink_from_logger()
+    lines = list(reversed([_ for _ in Path(f).read_text().split('\n') if not '/log' in _]))[:number_of_lines]
+    return lines

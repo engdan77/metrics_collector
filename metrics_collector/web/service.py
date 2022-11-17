@@ -1,3 +1,4 @@
+import datetime
 from pathlib import Path
 from typing import Iterable
 
@@ -13,6 +14,7 @@ from pywebio.platform.fastapi import asgi_app
 from metrics_collector.scheduler.api import AsyncService
 from metrics_collector.web.rest import graph_router
 from metrics_collector.web.ui import ui_show, ui_add_schedule, ui_remove_schedule
+from metrics_collector.utils import get_last_log_lines
 
 app = FastAPI()
 app.include_router(graph_router, prefix='/graph')
@@ -21,6 +23,11 @@ app.include_router(graph_router, prefix='/graph')
 @app.get('/')
 def main_route():
     return RedirectResponse('/static')
+
+
+@app.get('/log')
+def get_log():
+    return '<br/>'.join(get_last_log_lines(20))
 
 
 class WebServer:
