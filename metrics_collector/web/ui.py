@@ -6,6 +6,7 @@ from functools import partial
 from typing import Type, Annotated
 import pywebio.input
 from parsedatetime import Calendar
+from pywebio import config
 from pywebio.input import input, radio, select, input_group, PASSWORD
 from pywebio.output import put_html, put_processbar, set_processbar, put_text, clear, put_table, put_buttons
 from metrics_collector.orchestrator.generic import Orchestrator, ProgressBar
@@ -115,6 +116,7 @@ def ui_get_schedule_options() -> ScheduleParams:
     return form
 
 
+@config(theme='dark')
 def ui_add_schedule():
     """This is UI to get input and add scheduled job"""
     o = Orchestrator()
@@ -128,6 +130,7 @@ def ui_add_schedule():
     put_text('Scheduler configuration updated, restarting schedules ...')
 
 
+@config(theme='dark')
 def ui_remove_schedule():
     """This is UI for removing existing scheduled job"""
     def delete_row(choice, row):
@@ -184,6 +187,7 @@ def ui_get_action_options() -> tuple[ActionType, BaseAction]:
     return action_type, action_properties
 
 
+@config(theme='dark')
 def ui_show():
     """This is the main UI for get input and plot graphs to the screen"""
     o = Orchestrator()
