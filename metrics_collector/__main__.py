@@ -2,7 +2,7 @@ import os
 import sys
 from enum import Enum
 from pathlib import Path
-
+import uvicorn
 import appdirs
 import typer
 from metrics_collector.scheduler import MyScheduler
@@ -15,6 +15,17 @@ import logging
 class LogLevel(str, Enum):
     INFO = 'INFO'
     DEBUG = 'DEBUG'
+
+
+def filter_log(record):
+    return 'log' in record['message'] and record['name'].startswith('uvicorn')
+
+def start_logging(data_dir, pkg_name, log_level):
+    logging.getLogger("uvicorn").setLevel(logging.WARNING)
+    logging.getLogger('apscheduler').setLevel(logging.WARNING)
+    logger.remove()
+    logger.add(sys.stdout, level=getattr(logging, log_level), filter=filter_log)
+    logger.add(f'{data_dir}{pkg_name}.log', rotation="1MB", retention="10 days", filter=filter_log)
 
 
 def start_initial_loop(port):
@@ -32,10 +43,7 @@ def start(port: int = typer.Option(5050, help="Port that Web Service use"), data
         Path(default_app_dir).mkdir(parents=True, exist_ok=True)
         os.environ['DATA_DIR'] = default_app_dir
         data_dir = default_app_dir
-    logging.getLogger('apscheduler').setLevel(logging.WARNING)
-    logger.remove()
-    logger.add(sys.stdout, level=getattr(logging, log_level))
-    logger.add(f'{data_dir}{pkg_name}.log', rotation="1MB", retention="10 days")
+    start_logging(data_dir, pkg_name, log_level=log_level)
     try:
         start_initial_loop(port)
     except AttributeError as e:
