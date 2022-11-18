@@ -50,6 +50,15 @@ Use your browser to connect to http://127.0.0.1:5050 or the port that you can ch
 For the most cases one may prefer to work within a [Juypter notebook](https://jupyter.org) to test get data, clean it and make chart of these.
 So what this project aim for is to supply a few abstract base classes to you can conform you existing code without need to think too much about the code later on that allow you to easily access data.
 
+The below classes will automatically be loaded as "plugins" and as long as you create concrete classes from the abstract ones just assure you save them the following folder *(packages)*
+
+```
+metrics_collector/
+├─ extract/
+├─ load/
+├─ transform/
+```
+
 ### <u>Extract step</u>
 
 This first step is a prerequisite to have any data to analyse.
