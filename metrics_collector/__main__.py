@@ -2,7 +2,6 @@ import os
 import sys
 from enum import Enum
 from pathlib import Path
-import uvicorn
 import appdirs
 import typer
 from metrics_collector.scheduler import MyScheduler
@@ -20,8 +19,8 @@ class LogLevel(str, Enum):
 def filter_log(record):
     return 'log' in record['message'] and record['name'].startswith('uvicorn')
 
+
 def start_logging(data_dir, pkg_name, log_level):
-    logging.getLogger("uvicorn").setLevel(logging.WARNING)
     logging.getLogger('apscheduler').setLevel(logging.WARNING)
     logger.remove()
     logger.add(sys.stdout, level=getattr(logging, log_level), filter=filter_log)
