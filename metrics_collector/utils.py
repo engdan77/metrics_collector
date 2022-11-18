@@ -1,13 +1,42 @@
 import os
 from datetime import datetime, timedelta, date
 from pathlib import Path
-from typing import Generator
+from typing import Generator, Annotated
 import datetime
-
 from appdirs import user_data_dir
 from loguru import logger
 from loguru._file_sink import FileSink
 from parsedatetime import Calendar
+
+from inspect import isclass
+from pkgutil import iter_modules
+from pathlib import Path
+from importlib import import_module
+import inspect
+
+
+def load_all_submodules(calling_package_name: Annotated[str | None, "send __name__ as argument"] = None):
+    """iterate through the modules in the package and load it"""
+    if calling_package_name:
+        *_, pkg_name = calling_package_name.split('.')
+        stack_frames = inspect.stack()
+        stack_frames_sum = [(f.function, f.filename) for f in stack_frames]
+        idx_func_called, *_ = [i for i, _ in enumerate(stack_frames_sum) if _[0] == 'load_all_submodules']
+        package_file_path = stack_frames[idx_func_called + 1].filename
+    else:
+        package_file_path = __file__
+        calling_package_name = __name__
+
+    package_dir = Path(package_file_path).resolve().parent.as_posix()
+    for (_, module_name, _) in iter_modules([package_dir]):
+        # import the module and iterate through its attributes
+        module = import_module(f"{calling_package_name}.{module_name}")
+        for attribute_name in dir(module):
+            attribute = getattr(module, attribute_name)
+
+            if isclass(attribute):
+                # Add the class to this package's variables
+                globals()[attribute_name] = attribute
 
 
 def get_past_days(number_days: int = 1, offset=0) -> Generator:
