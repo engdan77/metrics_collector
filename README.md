@@ -33,6 +33,13 @@ $ source venv/bin/activate
 $ pip3 install git+https://github.com/engdan77/metrics_collector.git
 ```
 
+### Using Docker
+
+```shell
+$ mkdir data
+$ docker build -t metrics_collector . && docker run -d -p 5050:5050 -v $(pwd)/data:/app/data --name metrics_collector metrics_collector
+```
+
 
 
 ## Usage
@@ -44,6 +51,20 @@ Start it from within the terminal by `metrics_collector` with the optional `--po
 ![cli_metrics_collector](https://raw.githubusercontent.com/engdan77/project_images/master/pics/cli_metrics_collector.png)
 
 Use your browser to connect to http://127.0.0.1:5050 or the port that you can change with the --port argument.
+
+### Pre-built services
+
+##### Garmin and apple
+
+This service was built for displaying graphs related to distance walked and runned regardless registered within Apple health or Garmin Connect. Below are the parameters required
+
+**apple_uri_health_data**: this takes uri that [PyFilesystem](https://github.com/PyFilesystem/pyfilesystem2) supprorts such as example `ftp://foo:bar@127.0.0.1:10021/export.zip` that will  point to export from Apple Heatlh such as described [here](https://www.igeeksblog.com/how-to-import-and-export-health-app-data-on-iphone/).
+
+**garmin_username**: the username you have for [Garmin Connect](https://connect.garmin.com)
+
+**garmin_password**: the password for Garmin Connect
+
+
 
 ## Tutorial - implement your own service
 
@@ -418,6 +439,53 @@ classDiagram
 ### Frontend
 
 For the frontend I use two primary frameworks that makes this easy for us to expose to end-users, for the Web UI I use [PyWebIO](https://pywebio.readthedocs.io/en/latest/) together using [uvicorn](https://www.uvicorn.org) and [FastAPI](https://fastapi.tiangolo.com) to expose this as web service and use some techniques allow us to dynamically create [REST API](https://en.wikipedia.org/wiki/Representational_state_transfer) routes based on services available.
+
+
+
+## Tests
+
+You can run the tests using pytest by
+
+```shell
+$ cd tests && pytest --cov --disable-pytest-warnings                                                                                                                                           
+
+=========================================================================================== test session starts ============================================================================================
+platform darwin -- Python 3.10.4, pytest-7.1.3, pluggy-1.0.0
+rootdir: /private/tmp/metrics_collector
+plugins: anyio-3.5.0, mock-3.9.0, cov-4.0.0
+collected 11 items
+
+test_extract.py ......                                                                                                                                                                               [ 54%]
+test_load.py ...                                                                                                                                                                                     [ 81%]
+test_transform.py ..                                                                                                                                                                                 [100%]
+
+---------- coverage: platform darwin, python 3.10.4-final-0 ----------
+Name                                                                         Stmts   Miss  Cover
+------------------------------------------------------------------------------------------------
+/tmp/metrics_collector/metrics_collector/__init__.py                     1      0   100%
+/tmp/metrics_collector/metrics_collector/exceptions.py                   4      0   100%
+/tmp/metrics_collector/metrics_collector/extract/__init__.py             3      0   100%
+/tmp/metrics_collector/metrics_collector/extract/apple.py               67     45    33%
+/tmp/metrics_collector/metrics_collector/extract/base.py               147     58    61%
+/tmp/metrics_collector/metrics_collector/extract/garmin.py              45     30    33%
+/tmp/metrics_collector/metrics_collector/load/__init__.py                3      0   100%
+/tmp/metrics_collector/metrics_collector/load/base.py                   32      1    97%
+/tmp/metrics_collector/metrics_collector/load/graph.py                  49     35    29%
+/tmp/metrics_collector/metrics_collector/orchestrator/__init__.py        0      0   100%
+/tmp/metrics_collector/metrics_collector/orchestrator/generic.py       205    125    39%
+/tmp/metrics_collector/metrics_collector/storage/__init__.py             0      0   100%
+/tmp/metrics_collector/metrics_collector/storage/uriloader.py           20     14    30%
+/tmp/metrics_collector/metrics_collector/transform/__init__.py           3      0   100%
+/tmp/metrics_collector/metrics_collector/transform/base.py              64     10    84%
+/tmp/metrics_collector/metrics_collector/transform/transformers.py      26     15    42%
+/tmp/metrics_collector/metrics_collector/utils.py                       75     38    49%
+__init__.py                                                                      0      0   100%
+test_extract.py                                                                 40      0   100%
+test_load.py                                                                    36      0   100%
+test_transform.py                                                               25      0   100%
+------------------------------------------------------------------------------------------------
+TOTAL                                                                          845    371    56%
+```
 
 
 
