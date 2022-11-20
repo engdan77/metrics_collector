@@ -1,3 +1,4 @@
+from .__version__ import __version__
 import os
 import sys
 from enum import Enum
@@ -17,7 +18,8 @@ class LogLevel(str, Enum):
 
 
 def filter_log(record):
-    return 'log' in record['message'] and record['name'].startswith('uvicorn')
+    # return 'log' in record['message'] and record['name'].startswith('uvicorn')
+    return False
 
 
 def start_logging(data_dir, pkg_name, log_level):
@@ -33,6 +35,7 @@ def start_initial_loop(port):
 
 
 def start(port: int = typer.Option(5050, help="Port that Web Service use"), data_dir: str = typer.Option(None, help="Override default path for cache and configuration"), log_level: LogLevel = LogLevel.INFO):
+    logger.info(f'Starting {__package__} {__version__}')
     pkg_name, *_ = __package__.split('.')
     default_app_dir = appdirs.user_data_dir()
     if data_dir:
