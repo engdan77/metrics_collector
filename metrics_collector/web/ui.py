@@ -8,7 +8,7 @@ import pywebio.input
 from parsedatetime import Calendar
 from pywebio import config
 from pywebio.input import input, radio, select, input_group, PASSWORD
-from pywebio.output import put_html, put_processbar, set_processbar, put_text, clear, put_table, put_buttons
+from pywebio.output import put_html, put_processbar, set_processbar, put_text, clear, put_table, put_buttons, popup
 from metrics_collector.orchestrator.generic import Orchestrator, ProgressBar
 from loguru import logger
 
@@ -59,7 +59,7 @@ def ui_get_service_and_interval(o):
     def check_form(form_data):
         now = datetime.date.today()
         if form_data['date'] and form_data['text']:
-            return ('date', 'Chose one of the options')
+            return 'date', 'Chose one of the options'
         if form_data['date'] and normalize_date(form_data['date']) <= now and not form_data['text']:
             return None
         if form_data['text']:
@@ -67,8 +67,8 @@ def ui_get_service_and_interval(o):
             if c.parse(form_data['text'])[1] and normalize_date(form_data['text']) <= now:
                 return None
             else:
-                return ('text', 'Not a valid date by text')
-        return ('date', 'Chose a date')
+                return 'text', 'Not a valid date by text'
+        return 'date', 'Chose a date'
 
     for t in ('from', 'to'):
         data = input_group(f"{t.capitalize()} date:", [
@@ -192,12 +192,19 @@ def ui_show():
     """This is the main UI for get input and plot graphs to the screen"""
     o = Orchestrator()
     dag_name, from_, to_ = ui_get_service_and_interval(o)
-    extract_params = get_extract_params(dag_name, o)  # determine if params already stored
-    extract_objects = o.get_extract_objects(dag_name, extract_params)  # required with extract_params as dict
-
-    put_text('Processing data from services')
-    pb = WebProgressBar()
-    o.process_dates(extract_objects, from_, to_, progress_bar=pb)
+    carry_on = False
+    while not carry_on:
+        try:
+            clear()
+            extract_params = get_extract_params(dag_name, o)  # determine if params already stored
+            extract_objects = o.get_extract_objects(dag_name, extract_params)  # required with extract_params as dict
+            put_text('Processing data from services')
+            pb = WebProgressBar()
+            o.process_dates(extract_objects, from_, to_, progress_bar=pb)
+            carry_on = True
+        except Exception as e:
+            logger.error(f'Error extracting data: {e}')
+            popup(f'Error: {e}')
     set_processbar('download_bar', 1)   # To assure it shows 100%
     put_text('Massaging data and rendering charts')
 
