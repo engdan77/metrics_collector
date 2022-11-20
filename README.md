@@ -289,7 +289,7 @@ for graph_data in o.get_all_graphs(from_, to_, dag_name, transform_object, 'png'
 
 ## Software design
 
-Overall
+### Overall
 
 So as mentioned earlier, the main components of this design could be described as
 
