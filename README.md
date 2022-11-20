@@ -462,29 +462,29 @@ test_transform.py ..                                                            
 ---------- coverage: platform darwin, python 3.10.4-final-0 ----------
 Name                                                                         Stmts   Miss  Cover
 ------------------------------------------------------------------------------------------------
-/tmp/metrics_collector/metrics_collector/__init__.py                     1      0   100%
-/tmp/metrics_collector/metrics_collector/exceptions.py                   4      0   100%
-/tmp/metrics_collector/metrics_collector/extract/__init__.py             3      0   100%
-/tmp/metrics_collector/metrics_collector/extract/apple.py               67     45    33%
-/tmp/metrics_collector/metrics_collector/extract/base.py               147     58    61%
-/tmp/metrics_collector/metrics_collector/extract/garmin.py              45     30    33%
-/tmp/metrics_collector/metrics_collector/load/__init__.py                3      0   100%
-/tmp/metrics_collector/metrics_collector/load/base.py                   32      1    97%
-/tmp/metrics_collector/metrics_collector/load/graph.py                  49     35    29%
-/tmp/metrics_collector/metrics_collector/orchestrator/__init__.py        0      0   100%
-/tmp/metrics_collector/metrics_collector/orchestrator/generic.py       205    125    39%
-/tmp/metrics_collector/metrics_collector/storage/__init__.py             0      0   100%
-/tmp/metrics_collector/metrics_collector/storage/uriloader.py           20     14    30%
-/tmp/metrics_collector/metrics_collector/transform/__init__.py           3      0   100%
-/tmp/metrics_collector/metrics_collector/transform/base.py              64     10    84%
-/tmp/metrics_collector/metrics_collector/transform/transformers.py      26     15    42%
-/tmp/metrics_collector/metrics_collector/utils.py                       75     38    49%
-__init__.py                                                                      0      0   100%
-test_extract.py                                                                 40      0   100%
-test_load.py                                                                    36      0   100%
-test_transform.py                                                               25      0   100%
+/tmp/metrics_collector/__init__.py                     1      0   100%
+/tmp/metrics_collector/exceptions.py                   4      0   100%
+/tmp/metrics_collector/extract/__init__.py             3      0   100%
+/tmp/metrics_collector/extract/apple.py               67     45    33%
+/tmp/metrics_collector/extract/base.py               147     58    61%
+/tmp/metrics_collector/extract/garmin.py              45     30    33%
+/tmp/metrics_collector/load/__init__.py                3      0   100%
+/tmp/metrics_collector/load/base.py                   32      1    97%
+/tmp/metrics_collector/load/graph.py                  49     35    29%
+/tmp/metrics_collector/orchestrator/__init__.py        0      0   100%
+/tmp/metrics_collector/orchestrator/generic.py       205    125    39%
+/tmp/metrics_collector/storage/__init__.py             0      0   100%
+/tmp/metrics_collector/storage/uriloader.py           20     14    30%
+/tmp/metrics_collector/transform/__init__.py           3      0   100%
+/tmp/metrics_collector/transform/base.py              64     10    84%
+/tmp/metrics_collector/transform/transformers.py      26     15    42%
+/tmp/metrics_collector/utils.py                       75     38    49%
+__init__.py                                            0      0   100%
+test_extract.py                                       40      0   100%
+test_load.py                                          36      0   100%
+test_transform.py                                     25      0   100%
 ------------------------------------------------------------------------------------------------
-TOTAL                                                                          845    371    56%
+TOTAL                                                845    371    56%
 ```
 
 
