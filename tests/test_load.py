@@ -7,8 +7,8 @@ import pytest
 from metrics_collector.load.base import GraphFormat
 
 from metrics_collector.load.base import BaseLoadGraph
-from test_extract import extract_obj
-from test_transform import transform_obj
+from .test_extract import extract_obj
+from .test_transform import transform_obj
 
 
 class FooLoadGraph(BaseLoadGraph):
