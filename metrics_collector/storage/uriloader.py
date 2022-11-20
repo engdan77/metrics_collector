@@ -5,7 +5,9 @@ from furl import furl
 from metrics_collector.exceptions import MetricsExtractException
 
 
-def uri_loader(_, uri_string) -> bytes:  # discard 1st arg being self
+def uri_loader(_, uri_string) -> bytes:
+    """Responsible for loading file from URI"""
+    # discard 1st arg being self
     uri_parts = furl(uri_string)
     p = uri_parts.pathstr
     dirname = os.path.dirname(p)
