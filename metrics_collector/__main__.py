@@ -34,7 +34,7 @@ def start_initial_loop(port):
     WebServer((scheduler,), port=port)  # send services to be started with uvicorn
 
 
-def start(port: int = typer.Option(5050, help="Port that Web Service use"), data_dir: str = typer.Option(None, help="Override default path for cache and configuration"), log_level: LogLevel = LogLevel.INFO):
+def start(port: int = typer.Option(5050, help="Port that Web Service use"), data_dir: str = typer.Option(None, help="Override default path for cache and configuration"), log_level: LogLevel = LogLevel.DEBUG):
     logger.info(f'Starting {__package__} {__version__}')
     pkg_name, *_ = __package__.split('.')
     default_app_dir = appdirs.user_data_dir()
