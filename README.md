@@ -36,7 +36,8 @@ $ pip3 install git+https://github.com/engdan77/metrics_collector.git
 ### Using Docker
 
 ```shell
-$ mkdir data
+$ git clone https://github.com/engdan77/metrics_collector.git
+$ cd metrics_collector && mkdir data
 $ docker build -t metrics_collector . && docker run -d -p 5050:5050 -v $(pwd)/data:/app/data --name metrics_collector metrics_collector
 ```
 
