@@ -32,7 +32,7 @@ def start_logging(data_dir, log_level):
     default_app_dir = appdirs.user_data_dir()
     if data_dir:
         os.environ['DATA_DIR'] = data_dir
-    if is_docker() and not default_app_dir:
+    if is_docker():
         default_app_dir = '/app/data'
         print(f'Default app dir: {default_app_dir}')
     elif 'DATA_DIR' not in os.environ:
