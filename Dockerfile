@@ -1,6 +1,7 @@
 FROM python:3.10-slim
 
 ENV DATA_DIR=/app/data
+ENV IS_DOCKER=1
 EXPOSE 5050/tcp
 
 RUN apt-get update
