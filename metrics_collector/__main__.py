@@ -40,7 +40,10 @@ def start(port: int = typer.Option(5050, help="Port that Web Service use"), data
     default_app_dir = appdirs.user_data_dir()
     if data_dir:
         os.environ['DATA_DIR'] = data_dir
-    if 'DATA_DIR' not in os.environ:
+    if 'IS_DOCKER' in os.environ and not default_app_dir:
+        default_app_dir = '/app/data'
+        print(f'Default app dir: {default_app_dir}')
+    elif 'DATA_DIR' not in os.environ:
         logger.info(f'Creating {default_app_dir}')
         Path(default_app_dir).mkdir(parents=True, exist_ok=True)
         os.environ['DATA_DIR'] = default_app_dir
