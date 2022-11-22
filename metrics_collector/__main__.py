@@ -22,20 +22,7 @@ def filter_log(record):
     return False
 
 
-def start_logging(data_dir, pkg_name, log_level):
-    logging.getLogger('apscheduler').setLevel(logging.WARNING)
-    logger.remove()
-    logger.add(sys.stdout, level=getattr(logging, log_level), filter=filter_log)
-    logger.add(f'{data_dir}{pkg_name}.log', rotation="1MB", retention="10 days", filter=filter_log)
-
-
-def start_initial_loop(port):
-    scheduler = MyScheduler(initials=default_initial_scheduled_tasks)
-    WebServer((scheduler,), port=port)  # send services to be started with uvicorn
-
-
-def start(port: int = typer.Option(5050, help="Port that Web Service use"), data_dir: str = typer.Option(None, help="Override default path for cache and configuration"), log_level: LogLevel = LogLevel.DEBUG):
-    logger.info(f'Starting {__package__} {__version__}')
+def start_logging(data_dir, log_level):
     pkg_name, *_ = __package__.split('.')
     default_app_dir = appdirs.user_data_dir()
     if data_dir:
@@ -48,7 +35,22 @@ def start(port: int = typer.Option(5050, help="Port that Web Service use"), data
         Path(default_app_dir).mkdir(parents=True, exist_ok=True)
         os.environ['DATA_DIR'] = default_app_dir
         data_dir = default_app_dir
-    start_logging(data_dir, pkg_name, log_level=log_level)
+    logging_path = f'{data_dir}{pkg_name}.log'
+    print(f'Logging to {logging_path}')
+    logging.getLogger('apscheduler').setLevel(logging.WARNING)
+    logger.remove()
+    logger.add(sys.stdout, level=getattr(logging, log_level), filter=filter_log)
+    logger.add(logging_path, rotation="1MB", retention="10 days", filter=filter_log)
+
+
+def start_initial_loop(port):
+    scheduler = MyScheduler(initials=default_initial_scheduled_tasks)
+    WebServer((scheduler,), port=port)  # send services to be started with uvicorn
+
+
+def start(port: int = typer.Option(5050, help="Port that Web Service use"), data_dir: str = typer.Option(None, help="Override default path for cache and configuration"), log_level: LogLevel = LogLevel.DEBUG):
+    start_logging(data_dir, log_level=log_level)
+    logger.info(f'Starting {__package__} {__version__}')
     try:
         start_initial_loop(port)
     except AttributeError as e:
