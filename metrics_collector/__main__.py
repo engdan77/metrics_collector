@@ -17,6 +17,11 @@ class LogLevel(str, Enum):
     DEBUG = 'DEBUG'
 
 
+def is_docker():
+    cgroup = Path("/proc/self/cgroup")
+    return Path('/.dockerenv').is_file() or cgroup.is_file() and cgroup.read_text().find("docker") > -1
+
+
 def filter_log(record):
     # return 'log' in record['message'] and record['name'].startswith('uvicorn')
     return False
@@ -27,7 +32,7 @@ def start_logging(data_dir, log_level):
     default_app_dir = appdirs.user_data_dir()
     if data_dir:
         os.environ['DATA_DIR'] = data_dir
-    if 'IS_DOCKER' in os.environ and not default_app_dir:
+    if is_docker() and not default_app_dir:
         default_app_dir = '/app/data'
         print(f'Default app dir: {default_app_dir}')
     elif 'DATA_DIR' not in os.environ:
