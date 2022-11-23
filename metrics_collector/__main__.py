@@ -39,7 +39,8 @@ def start_logging(data_dir, log_level):
         Path(default_app_dir).mkdir(parents=True, exist_ok=True)
         os.environ['DATA_DIR'] = default_app_dir
         data_dir = default_app_dir
-    logging_path = f'{data_dir}{pkg_name}.log'
+    data_dir.removeprefix('/')
+    logging_path = f'{data_dir}/{pkg_name}.log'
     print(f'Logging to {logging_path}')
     logging.getLogger('apscheduler').setLevel(logging.WARNING)
     logger.remove()
