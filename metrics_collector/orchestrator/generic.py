@@ -353,4 +353,8 @@ class Orchestrator:
                     date
                 )  # This could also be changed to different context
                 if progress_bar:
-                    progress_bar.update(current_count / tot)
+                    try:
+                        progress_bar.update(current_count / tot)
+                    except Exception as e:
+                        logger.error(f'error updating progress bar {e}')
+                        ...
