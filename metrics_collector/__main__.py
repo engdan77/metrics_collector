@@ -23,8 +23,7 @@ def is_docker():
 
 
 def filter_log(record):
-    # return 'log' in record['message'] and record['name'].startswith('uvicorn')
-    return False
+    return not ('log' in record['message'] and record['name'].startswith('uvicorn'))
 
 
 def start_logging(data_dir, log_level):
