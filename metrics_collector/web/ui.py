@@ -199,6 +199,7 @@ def ui_show():
             extract_params = get_extract_params(dag_name, o)  # determine if params already stored
             extract_objects = o.get_extract_objects(dag_name, extract_params)  # required with extract_params as dict
             put_text('Processing data from services')
+            put_text('Note: make sure your browser is connected and device does not go to sleep...')
             pb = WebProgressBar()
             o.process_dates(extract_objects, from_, to_, progress_bar=pb)
             carry_on = True
