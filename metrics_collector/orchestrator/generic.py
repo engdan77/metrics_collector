@@ -356,5 +356,6 @@ class Orchestrator:
                     try:
                         progress_bar.update(current_count / tot)
                     except Exception as e:
-                        logger.error(f'error updating progress bar {e}')
-                        ...
+                        logger.error(f'error updating progress bar: {e}')
+                        if "Can't find current session" in f"{e}":
+                            logger.info('Web browser session most likely disconnected and this process will continue in background till completion')
