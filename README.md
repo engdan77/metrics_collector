@@ -1,5 +1,7 @@
 # Metrics Collector
 
+<a href="https://youtu.be/BFPds_FCVIs" rel="video">![Video](https://raw.githubusercontent.com/engdan77/project_images/master/pics/metrics_collector_demo.gif)</a>
+
 ## Features
 
 - Abstracts complexity from an existing time-based series analysis project (e.g. using Jyputer notebook) that dynamically builds into a service that provides ... 
