@@ -93,6 +93,7 @@ This is a dataclass that should be a container for all "fields" required to extr
 Thanks for inheritance the abstracted services will allow interfaces to ask those from user.
 
 ```python
+# file: metrics_collector/extract/foo_parameters.py
 from metrics_collector.extract.base import BaseExtractParameters
 from dataclasses import dataclass
 
@@ -127,8 +128,9 @@ The base class will also let you know of the required **get_data_from_service(da
 Machinery will also assure that data being cached for future use.
 
 ```python
+# file: metrics_collector/extract/foo_extract.py
 from metrics_collector.extract.base import BaseExtract, DaysMetrics
-# from ... import FooExtractParameters
+from .foo_parameters import FooExtractParameters
 
 class FooExtract(BaseExtract):
 
@@ -164,6 +166,7 @@ For approach this in a "pipeline" manner I've used `return self` to allows you t
 
 
 ```python
+# file: metrics_collector/transform/foo_transform.py
 from metrics_collector.transform.base import BaseTransform
 import pandera as pa
 import datetime
@@ -208,6 +211,7 @@ Whether the to_png or to_html used depend on the user e.g. using the web-UI with
 
 
 ```python
+# file: metrics_collector/load/foo_load.py
 from typing import Callable, Iterable, Annotated
 from metrics_collector.load.base import BaseLoadGraph
 import plotly
