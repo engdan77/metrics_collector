@@ -23,7 +23,9 @@ def is_docker():
 
 
 def filter_log(record):
-    return not ('log' in record['message'] and record['name'].startswith('uvicorn'))
+    filter_entry = ('log' in record['message'] and not record['name'].startswith('uvicorn')) or any(_ in record['name'] for _ in ('websocket', 'http'))
+    display_entry = not filter_entry
+    return display_entry
 
 
 def start_logging(data_dir, log_level):
