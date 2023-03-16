@@ -41,8 +41,8 @@ class SampleExtract(BaseExtract):
 @pytest.fixture
 def extract_obj():
     params = SampleExtractParameters(uri_for_sample_service="foo://my_service")
-    extract_obj = SampleExtract(params)
-    return extract_obj
+    extract_obj_ = SampleExtract(params)
+    return extract_obj_
 
 
 def test_instantiate_extract_class(extract_obj):
