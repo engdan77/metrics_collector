@@ -5,7 +5,7 @@ import pytest
 
 from metrics_collector.transform import BaseTransform
 import pandera as pa
-from .test_extract import extract_obj
+from test_extract import extract_obj
 
 
 class FooTransform(BaseTransform):
